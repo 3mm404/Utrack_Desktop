@@ -1,5 +1,7 @@
 # Conexiones Desktop implementadas y APIs pendientes
 
+> Actualización: motor 0.8.2 conecta volumen local por zona. Ver [Volumen Desktop](VOLUMEN_DESKTOP.md). Las limitaciones de volumen descritas en esta entrega 0.8.1 son históricas; la nueva integración no modifica backend ni persiste el ajuste.
+
 Fecha: 19/10/2026. Proyectos: backend `C:/Develop/ENGINE/UtrackSound`, motor `C:/Develop/ENGINE/music-engine`, Desktop `C:/Develop/ENGINE/Utrack_Desktop`.
 
 ## 1. Alcance de esta entrega

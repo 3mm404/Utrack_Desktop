@@ -9,7 +9,7 @@ Interfaz Flutter para el motor local de audio. En producción muestra las zonas 
 3. Iniciar motor. La conexión se confirma mediante sincronización, heartbeat y estados recientes.
 4. Las zonas aparecen cuando el servidor las entrega al motor.
 
-La aplicación permite configurar e iniciar/detener el motor. Con el motor 0.8.1 también permite pausa, reanudar, siguiente, anterior y reproducir una canción asignada desde Biblioteca. Volumen, canales, seek, aleatorio y repetición conservan sus controles deshabilitados.
+La aplicación permite configurar e iniciar/detener el motor. Con el motor 0.8.1 también permite pausa, reanudar, siguiente, anterior y reproducir una canción asignada desde Biblioteca. El motor 0.8.2 añade volumen local por zona mediante perilla y sliders. Canales, seek, aleatorio y repetición conservan sus controles deshabilitados. Ver docs/VOLUMEN_DESKTOP.md para alcance temporal y compatibilidad con el servidor.
 
 ```sh
 flutter analyze

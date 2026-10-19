@@ -70,6 +70,8 @@ abstract class AudioViewState extends ChangeNotifier {
   bool get busy => false;
   VoidCallback? get refreshAction => null;
   bool get canControlZones => isSimulated;
+  bool get canSetVolume => canControlZones;
+  bool get volumePending => false;
   bool canPlayback(String action) => canControlZones;
   bool get playbackPending => false;
   void playSong(String songId) => _unsupported();

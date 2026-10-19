@@ -508,3 +508,9 @@ Validación final de integración: dart analyze sin incidencias; suite completa 
 Alcance acotado por el usuario: conectar a Desktop las capacidades existentes de reproducción Go y documentar las demás APIs, sin implementarlas. Se añadieron pausa, reanudar, siguiente/anterior y selección de canción asignada; Biblioteca muestra canciones ID por zona. Motor 0.8.1 anuncia capacidades opcionales del protocolo 1 y recibe solicitudes correlacionadas por stdin. Flutter espera confirmación sin actualizar el estado de reproducción por anticipado. Los comandos remotos conservan su diario; los locales se deduplican en memoria por sesión.
 
 Backend Laravel inspeccionado para documentar rutas y archivos; sin modificaciones. Documento aparte: docs/CONEXIONES_DESKTOP_Y_APIS_PENDIENTES.md. Regresión Go completa correcta, análisis Dart limpio y 40 pruebas Flutter correctas; prueba del ejecutable nativo ejecutada aparte. Pendiente validación con servidor/token operativo y hardware real.
+
+## Volumen local Desktop — 19/10/2026
+
+Motor 0.8.2: capacidad volume y parámetro entero 0–100 conectado a perilla/sliders Flutter. Agrupación de solicitudes 200 ms, confirmación del motor y override local hasta nueva revisión del servidor o reinicio. Snapshot Desktop muestra volumen efectivo; heartbeat conserva volumen configurado para respetar el contrato Laravel existente. Sin cambios de backend. Detalle: docs/VOLUMEN_DESKTOP.md. Por petición del usuario, no se ejecutaron pruebas; solo compilación release Go/Flutter.
+
+Compilación Go 0.8.2 correcta. Flutter Windows release UTRACK_TEST=false compilado en C:/Develop/ENGINE/.builds/utrack-volume-082 por desaparición de temporales en el árbol original. Paquete completo: Releases/Utrack-Desktop-0.1.0-windows-x64-volumen-conectado.zip. No se ejecutaron tests ni pruebas de audio.

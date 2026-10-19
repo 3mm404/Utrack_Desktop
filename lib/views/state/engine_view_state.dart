@@ -13,6 +13,10 @@ class EngineViewState extends AudioViewState {
   final EngineController controller;
   List<ZoneViewData> _zones = [];
   String? _selectedId;
+  final Map<String, ({int volume, int revision})> _volumeDrafts = {};
+  ({String id, int volume, int revision})? _volumeSending;
+  Timer? _volumeTimer;
+  bool _disposed = false;
   static const _positions = [
     Offset(.30, .30),
     Offset(.68, .30),
@@ -29,6 +33,12 @@ class EngineViewState extends AudioViewState {
     'No reportado',
   );
   void _update() {
+    _volumeDrafts.removeWhere(
+      (id, draft) =>
+          draft.revision != controller.revision ||
+          !controller.running ||
+          !controller.zones.any((zone) => zone.id == id),
+    );
     _zones = [for (var i = 0; i < controller.zones.length; i++) _mapZone(i)];
     if (!_zones.any((zone) => zone.id == _selectedId)) {
       _selectedId = _zones.isEmpty ? null : _zones.first.id;
@@ -47,7 +57,13 @@ class EngineViewState extends AudioViewState {
     return ZoneViewData(
         zone.name,
         position,
-        zone.volume.toDouble(),
+        (_volumeDrafts[zone.id]?.volume ??
+                (_volumeSending?.id == zone.id &&
+                        _volumeSending?.revision == controller.revision
+                    ? _volumeSending?.volume
+                    : null) ??
+                zone.volume)
+            .toDouble(),
         zone.state == 'playing',
         zone.playlist.isEmpty ? 'Sin playlist asignada' : zone.playlist,
         0,
@@ -98,6 +114,70 @@ class EngineViewState extends AudioViewState {
   bool get busy => controller.busy;
   @override
   bool get playbackPending => controller.playbackPending;
+  @override
+  bool get volumePending => _volumeDrafts.isNotEmpty || _volumeSending != null;
+  @override
+  bool get canSetVolume =>
+      hasSelection &&
+      fresh &&
+      !controller.busy &&
+      controller.configurationError.isEmpty &&
+      controller.supportsPlayback('volume');
+  @override
+  void setVolume(int index, double value) {
+    if (!canSetVolume ||
+        index < 0 ||
+        index >= _zones.length ||
+        !value.isFinite) {
+      return;
+    }
+    final id = _zones[index].id;
+    _volumeDrafts[id] = (
+      volume: value.clamp(0, 100).round(),
+      revision: controller.revision,
+    );
+    _update();
+    _scheduleVolume();
+  }
+
+  void _scheduleVolume() {
+    _volumeTimer?.cancel();
+    _volumeTimer = Timer(
+      const Duration(milliseconds: 200),
+      () => unawaited(_sendVolume()),
+    );
+  }
+
+  Future<void> _sendVolume() async {
+    if (_disposed || _volumeDrafts.isEmpty) return;
+    if (!canSetVolume) {
+      _volumeDrafts.clear();
+      _update();
+      return;
+    }
+    if (_volumeSending != null || controller.playbackPending) {
+      _scheduleVolume();
+      return;
+    }
+    final entry = _volumeDrafts.entries.first;
+    _volumeDrafts.remove(entry.key);
+    if (entry.value.revision != controller.revision) {
+      _update();
+      return;
+    }
+    _volumeSending = (
+      id: entry.key,
+      volume: entry.value.volume,
+      revision: entry.value.revision,
+    );
+    _update();
+    await controller.playback(entry.key, 'volume', volume: entry.value.volume);
+    if (_disposed) return;
+    _volumeSending = null;
+    _update();
+    if (_volumeDrafts.isNotEmpty) _scheduleVolume();
+  }
+
   @override
   bool canPlayback(String action) =>
       hasSelection &&
@@ -198,6 +278,8 @@ class EngineViewState extends AudioViewState {
 
   @override
   void dispose() {
+    _disposed = true;
+    _volumeTimer?.cancel();
     controller.removeListener(_update);
     super.dispose();
   }

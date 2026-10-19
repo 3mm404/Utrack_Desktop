@@ -41,7 +41,16 @@ class EngineController extends ChangeNotifier {
   bool supportsPlayback(String action) =>
       _bridge is PlaybackEngineBridge && capabilities.contains(action);
 
-  Future<bool> playback(String zoneId, String action, {String? songId}) async {
+  Future<bool> playback(
+    String zoneId,
+    String action, {
+    String? songId,
+    int? volume,
+  }) async {
+    if (action == 'volume' && (volume == null || volume < 0 || volume > 100)) {
+      _fail(StateError('El volumen debe estar entre 0 y 100.'));
+      return false;
+    }
     if (!running ||
         !fresh ||
         playbackPending ||
@@ -64,6 +73,7 @@ class EngineController extends ChangeNotifier {
         'config_revision': revision,
         'action': action,
         'song_id': ?songId,
+        'volume': ?volume,
       });
       final value = await response;
       if (value['outcome'] != 'succeeded') {

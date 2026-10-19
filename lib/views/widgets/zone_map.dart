@@ -213,7 +213,7 @@ class _ZoneMapState extends State<ZoneMap> {
                   child: Slider(
                     value: zone.volume,
                     max: 100,
-                    onChanged: _state.canControlZones
+                    onChanged: _state.canSetVolume
                         ? (value) => _state.setVolume(index, value)
                         : null,
                   ),
@@ -276,7 +276,7 @@ class _ZoneMapState extends State<ZoneMap> {
           UiSlider(
             label: 'Volumen ${zone.name}',
             value: zone.volume,
-            onChanged: _state.canControlZones
+            onChanged: _state.canSetVolume
                 ? (value) => _state.setVolume(index, value)
                 : null,
           ),

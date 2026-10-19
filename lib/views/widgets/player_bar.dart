@@ -148,7 +148,7 @@ class _PlayerBarState extends State<PlayerBar> {
           label: '${_volume.round()}%',
           semanticFormatterCallback: (value) =>
               'Volumen del reproductor: ${value.round()}%',
-          onChanged: _state.canControlZones
+          onChanged: _state.canSetVolume
               ? (value) => _state.setVolume(_state.selectedIndex, value)
               : null,
         ),
@@ -236,9 +236,9 @@ class _PlayerBarState extends State<PlayerBar> {
                 _progress(),
                 if (!_state.isSimulated)
                   Text(
-                    _state.playbackPending
+                    _state.playbackPending || _state.volumePending
                         ? 'Esperando confirmación del motor…'
-                        : 'Reproducción por zona desde Desktop · Volumen y asignaciones desde el servidor.',
+                        : 'Reproducción y volumen por zona desde Desktop · Asignaciones desde el servidor.',
                     style: UiType.caption,
                     textAlign: TextAlign.center,
                   ),

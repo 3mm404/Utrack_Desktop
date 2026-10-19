@@ -129,14 +129,19 @@ class SelectedZonePanel extends StatelessWidget {
                       value: zone.volume,
                       diameter: 180,
                       showValue: false,
-                      onChanged: state.canControlZones
+                      onChanged: state.canSetVolume
                           ? (value) =>
                                 state.setVolume(state.selectedIndex, value)
                           : null,
                     ),
                   ),
                 ),
-                const Text('Volumen', style: UiType.caption),
+                Text(
+                  state.volumePending
+                      ? 'Volumen solicitado · pendiente'
+                      : 'Volumen',
+                  style: UiType.caption,
+                ),
                 Text('${zone.volume.round()}%', style: UiType.heading),
               ],
             ),
@@ -269,7 +274,7 @@ class SelectedZonePanel extends StatelessWidget {
               child: VolumeKnob(
                 value: zone.volume,
                 diameter: compact ? 168 : 208,
-                onChanged: state.canControlZones
+                onChanged: state.canSetVolume
                     ? (value) => state.setVolume(state.selectedIndex, value)
                     : null,
               ),
