@@ -5,10 +5,16 @@ import '../controllers/engine_controller.dart';
 import 'activity_view.dart';
 import 'configuration_view.dart';
 import 'overview_view.dart';
+import 'layout/utrack_shell.dart';
 
 class EngineDashboard extends StatefulWidget {
-  const EngineDashboard({super.key, required this.controller});
+  const EngineDashboard({
+    super.key,
+    required this.controller,
+    this.testMode = false,
+  });
   final EngineController controller;
+  final bool testMode;
   @override
   State<EngineDashboard> createState() => _EngineDashboardState();
 }
@@ -44,64 +50,110 @@ class _EngineDashboardState extends State<EngineDashboard> {
     listenable: widget.controller,
     builder: (context, _) {
       final c = widget.controller;
+      if (widget.testMode) {
+        return UtrackShell(
+          status: c.statusLabel,
+          connected: c.connected,
+          settings: Column(
+            children: [
+              ConfigurationView(controller: c),
+              const SizedBox(height: 24),
+              ActivityView(controller: c),
+            ],
+          ),
+        );
+      }
+      final compact = MediaQuery.sizeOf(context).width < 600;
       final wide = MediaQuery.sizeOf(context).width >= 950;
       return Scaffold(
+        bottomNavigationBar: compact
+            ? NavigationBar(
+                selectedIndex: _page,
+                onDestinationSelected: (index) => setState(() => _page = index),
+                destinations: const [
+                  NavigationDestination(
+                    icon: Icon(Icons.space_dashboard_outlined),
+                    label: 'Inicio',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.tune),
+                    label: 'Configuración',
+                  ),
+                  NavigationDestination(
+                    icon: Icon(Icons.terminal),
+                    label: 'Actividad',
+                  ),
+                ],
+              )
+            : null,
         body: SafeArea(
           child: Row(
             children: [
-              NavigationRail(
-                extended: wide,
-                minExtendedWidth: 220,
-                backgroundColor: const Color(0xff101a28),
-                selectedIndex: _page,
-                onDestinationSelected: (index) => setState(() => _page = index),
-                leading: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    vertical: 28,
-                    horizontal: 12,
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      const Icon(
-                        Icons.multitrack_audio,
-                        size: 32,
-                        color: Color(0xff57d5be),
-                      ),
-                      if (wide)
-                        const Padding(
-                          padding: EdgeInsets.only(left: 12),
-                          child: Text(
-                            'utrack',
-                            style: TextStyle(
-                              fontSize: 27,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: -1,
+              if (!compact)
+                NavigationRail(
+                  extended: wide,
+                  minExtendedWidth: 220,
+                  backgroundColor: const Color(0xff0c0f13),
+                  selectedIndex: _page,
+                  onDestinationSelected: (index) =>
+                      setState(() => _page = index),
+                  leading: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 28,
+                      horizontal: 12,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(
+                          Icons.multitrack_audio,
+                          size: 32,
+                          color: Color(0xffd8b895),
+                        ),
+                        if (wide)
+                          const Padding(
+                            padding: EdgeInsets.only(left: 12),
+                            child: Text(
+                              'UTRACK',
+                              style: TextStyle(
+                                fontSize: 27,
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: -1,
+                              ),
                             ),
                           ),
-                        ),
-                    ],
+                      ],
+                    ),
                   ),
+                  destinations: const [
+                    NavigationRailDestination(
+                      icon: Icon(Icons.space_dashboard_outlined),
+                      selectedIcon: Icon(Icons.space_dashboard),
+                      label: Text('Inicio'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.tune),
+                      label: Text('Configuración'),
+                    ),
+                    NavigationRailDestination(
+                      icon: Icon(Icons.terminal),
+                      label: Text('Actividad'),
+                    ),
+                  ],
                 ),
-                destinations: const [
-                  NavigationRailDestination(
-                    icon: Icon(Icons.space_dashboard_outlined),
-                    selectedIcon: Icon(Icons.space_dashboard),
-                    label: Text('Resumen'),
-                  ),
-                  NavigationRailDestination(
-                    icon: Icon(Icons.tune),
-                    label: Text('Configuración'),
-                  ),
-                  NavigationRailDestination(
-                    icon: Icon(Icons.terminal),
-                    label: Text('Actividad'),
-                  ),
-                ],
-              ),
               Expanded(
                 child: Column(
                   children: [
+                    if (widget.testMode)
+                      Container(
+                        width: double.infinity,
+                        padding: const EdgeInsets.all(12),
+                        color: const Color(0xff263c42),
+                        child: const Text(
+                          'MODO TEST · Datos simulados. No reproduce audio ni conecta con el servidor.',
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
                     Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 28,
@@ -115,7 +167,7 @@ class _EngineDashboardState extends State<EngineDashboard> {
                               children: [
                                 Text(
                                   [
-                                    'Centro de audio',
+                                    'Zonas de audio',
                                     'Configuración del equipo',
                                     'Diagnóstico',
                                   ][_page],
@@ -147,7 +199,7 @@ class _EngineDashboardState extends State<EngineDashboard> {
                             Icons.circle,
                             size: 9,
                             color: c.connected
-                                ? const Color(0xff57d5be)
+                                ? const Color(0xffd8b895)
                                 : Colors.blueGrey,
                           ),
                           const SizedBox(width: 8),

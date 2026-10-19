@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../controllers/engine_controller.dart';
 import 'widgets/section_card.dart';
+import 'widgets/zone_console.dart';
 
 class OverviewView extends StatelessWidget {
   const OverviewView({
@@ -18,7 +19,7 @@ class OverviewView extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         SectionCard(
-          title: 'Tu equipo, conectado a la música',
+          title: 'Control de audio',
           subtitle:
               'Configura la salida aquí. Controla canciones, playlists y volumen desde tu panel Laravel.',
           child: Wrap(
@@ -60,7 +61,7 @@ class OverviewView extends StatelessWidget {
                   'Salida configurada',
                   c.settings.backend == 'asio'
                       ? 'ASIO · ${c.settings.mode}'
-                      : 'Windows · ${c.settings.mode}',
+                      : 'Sistema · ${c.settings.mode}',
                 ),
                 _metric(
                   width,
@@ -72,6 +73,8 @@ class OverviewView extends StatelessWidget {
             );
           },
         ),
+        const SizedBox(height: 20),
+        ZoneConsole(controller: c, onConfigure: onConfigure),
         const SizedBox(height: 20),
         if (c.configurationError.isNotEmpty)
           Padding(
@@ -90,7 +93,7 @@ class OverviewView extends StatelessWidget {
             Icons.circle,
             size: 10,
             color: c.running && c.fresh
-                ? const Color(0xff57d5be)
+                ? const Color(0xff63e6c5)
                 : Colors.blueGrey,
           ),
           child: c.zones.isEmpty
@@ -122,7 +125,7 @@ class OverviewView extends StatelessWidget {
                           margin: const EdgeInsets.only(bottom: 12),
                           padding: const EdgeInsets.all(18),
                           decoration: BoxDecoration(
-                            color: const Color(0xff0e1725),
+                            color: const Color(0xff101419),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(
@@ -132,7 +135,7 @@ class OverviewView extends StatelessWidget {
                                 children: [
                                   const Icon(
                                     Icons.graphic_eq,
-                                    color: Color(0xff57d5be),
+                                    color: Color(0xff63e6c5),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
@@ -227,7 +230,7 @@ class OverviewView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(icon, color: const Color(0xff57d5be)),
+                Icon(icon, color: const Color(0xff63e6c5)),
                 const SizedBox(height: 18),
                 Text(label, style: const TextStyle(color: Color(0xffa9b9ca))),
                 const SizedBox(height: 8),

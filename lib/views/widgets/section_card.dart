@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../design/ui_tokens.dart';
+import 'panel_header.dart';
 
 class SectionCard extends StatelessWidget {
   const SectionCard({
@@ -7,7 +9,9 @@ class SectionCard extends StatelessWidget {
     this.subtitle,
     required this.child,
     this.trailing,
+    this.compact = false,
   });
+  final bool compact;
   final String title;
   final String? subtitle;
   final Widget child;
@@ -16,29 +20,12 @@ class SectionCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Card(
     child: Padding(
-      padding: const EdgeInsets.all(24),
+      padding: EdgeInsets.all(compact ? UiSpace.lg : UiSpace.xl),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-              ),
-              ?trailing,
-            ],
-          ),
-          if (subtitle != null) ...[
-            const SizedBox(height: 8),
-            Text(
-              subtitle!,
-              style: TextStyle(color: Colors.blueGrey.shade200, height: 1.5),
-            ),
-          ],
-          const SizedBox(height: 22),
+          PanelHeader(title: title, subtitle: subtitle, trailing: trailing),
+          SizedBox(height: compact ? UiSpace.lg : UiSpace.xl),
           child,
         ],
       ),

@@ -42,8 +42,8 @@ void main() {
     await tester.pumpAndSettle();
     bridge.connected();
     await tester.pump();
-    expect(find.text('Terraza'), findsOneWidget);
-    expect(find.text('Reproduciendo'), findsOneWidget);
+    expect(find.text('Terraza'), findsWidgets);
+    expect(find.text('Reproduciendo'), findsWidgets);
     expect(tester.takeException(), isNull);
     final boundary =
         preview.currentContext!.findRenderObject() as RenderRepaintBoundary;

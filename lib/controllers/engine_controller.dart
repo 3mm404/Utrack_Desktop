@@ -113,9 +113,7 @@ class EngineController extends ChangeNotifier {
       await _bridge.configure(value, token.trim());
       await _inspect();
       dirty = false;
-      _log(
-        'Configuración guardada. La credencial permanece cifrada en Windows.',
-      );
+      _log('Configuración guardada en el motor.');
       return true;
     } catch (e) {
       _fail(e);

@@ -9,7 +9,7 @@ class ProcessEngineBridge implements EngineBridge {
   ProcessEngineBridge({String? executable, this.environment})
     : executable =
           executable ??
-          '${File(Platform.resolvedExecutable).parent.path}${Platform.pathSeparator}engine.exe';
+          '${File(Platform.resolvedExecutable).parent.path}${Platform.pathSeparator}${Platform.isWindows ? 'engine.exe' : 'engine'}';
 
   final String executable;
   final Map<String, String>? environment;
@@ -23,7 +23,7 @@ class ProcessEngineBridge implements EngineBridge {
   Future<Process> _spawn(List<String> arguments) async {
     if (!await File(executable).exists()) {
       throw StateError(
-        'No se encontró engine.exe junto a la aplicación. Extrae el paquete completo.',
+        'No se encontró el motor junto a la aplicación. Instala el ejecutable de tu plataforma.',
       );
     }
     return Process.start(
