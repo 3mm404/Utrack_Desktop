@@ -1,3 +1,7 @@
+# Actualización de integración — 19/10/2026
+
+El adaptador real de lectura y configuración/inicio/parada está implementado en EngineViewState. Producción no inserta datos de ejemplo. P1 conserva pendiente su validación contra servidor y audio físico. P2 requiere ampliar el protocolo antes de habilitar controles locales. Las tablas siguientes documentan el plan histórico de Etapa 10; para el estado vigente consultar PRODUCCION.md e INTEGRACION.md.
+
 # Plan de trabajo posterior y responsabilidades de entrega
 
 ## 1. Punto de partida

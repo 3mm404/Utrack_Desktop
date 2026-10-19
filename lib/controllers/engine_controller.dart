@@ -17,6 +17,7 @@ class EngineController extends ChangeNotifier {
   }
 
   final EngineBridge _bridge;
+  bool _disposed = false;
   late final StreamSubscription<Map<String, dynamic>> _subscription;
   late final Timer _timer;
   EngineSettings settings = const EngineSettings();
@@ -33,6 +34,73 @@ class EngineController extends ChangeNotifier {
   bool _sync = false, _heartbeat = false;
   DateTime? lastSnapshot, lastHeartbeat;
   int revision = 0;
+  Set<String> capabilities = {};
+  final Map<String, Completer<Map<String, dynamic>>> _commands = {};
+  int _requestSequence = 0;
+  bool get playbackPending => _commands.isNotEmpty;
+  bool supportsPlayback(String action) =>
+      _bridge is PlaybackEngineBridge && capabilities.contains(action);
+
+  Future<bool> playback(String zoneId, String action, {String? songId}) async {
+    if (!running ||
+        !fresh ||
+        playbackPending ||
+        !supportsPlayback(action) ||
+        configurationError.isNotEmpty) {
+      return false;
+    }
+    final requestId =
+        '${DateTime.now().microsecondsSinceEpoch}-${++_requestSequence}';
+    final result = Completer<Map<String, dynamic>>();
+    _commands[requestId] = result;
+    error = '';
+    notifyListeners();
+    // Attach timeout/error handling before writing to the process.
+    final response = result.future.timeout(const Duration(seconds: 40));
+    try {
+      await (_bridge as PlaybackEngineBridge).sendPlayback({
+        'request_id': requestId,
+        'zone_id': zoneId,
+        'config_revision': revision,
+        'action': action,
+        'song_id': ?songId,
+      });
+      final value = await response;
+      if (value['outcome'] != 'succeeded') {
+        final failure = value['error'] as Map?;
+        throw StateError(
+          failure?['message']?.toString() ?? 'El motor rechazó la orden.',
+        );
+      }
+      return true;
+    } catch (e) {
+      if (!result.isCompleted) result.complete({'outcome': 'failed'});
+      _fail(
+        e is TimeoutException
+            ? StateError(
+                'El motor no confirmó la orden. Revisa el estado antes de reintentar.',
+              )
+            : e,
+      );
+      return false;
+    } finally {
+      _commands.remove(requestId);
+      notifyListeners();
+    }
+  }
+
+  void _cancelPlayback() {
+    for (final command in _commands.values) {
+      if (!command.isCompleted) {
+        command.complete({
+          'outcome': 'failed',
+          'error': {
+            'message': 'El motor se cerró antes de confirmar la orden.',
+          },
+        });
+      }
+    }
+  }
 
   bool get fresh =>
       lastSnapshot != null &&
@@ -59,6 +127,9 @@ class EngineController extends ChangeNotifier {
       throw StateError('El ejecutable no es compatible con esta interfaz.');
     }
     version = info['version'] as String? ?? '—';
+    capabilities = (info['capabilities'] as List? ?? [])
+        .whereType<String>()
+        .toSet();
     dataDirectory = info['data_directory'] as String? ?? '';
     drivers = (info['drivers'] as List? ?? []).cast<String>();
     configured = info['configured'] == true;
@@ -166,7 +237,28 @@ class EngineController extends ChangeNotifier {
   }
 
   void _onEvent(Map<String, dynamic> event) {
+    if (_disposed) return;
+    try {
+      _handleEvent(event);
+    } on Object {
+      _fail(
+        StateError(
+          'El motor envió un evento incompatible. Revisa la versión del ejecutable.',
+        ),
+      );
+    }
+  }
+
+  void _handleEvent(Map<String, dynamic> event) {
     switch (event['type']) {
+      case 'command_result':
+        final result = event['result'] as Map<String, dynamic>;
+        final command = _commands[event['request_id']];
+        if (command != null &&
+            !command.isCompleted &&
+            result['outcome'] != 'pending') {
+          command.complete(result);
+        }
       case 'log':
         _log(event['message'] as String? ?? '');
       case 'connection':
@@ -195,6 +287,7 @@ class EngineController extends ChangeNotifier {
             '';
         lastSnapshot = DateTime.now();
       case 'exit':
+        _cancelPlayback();
         running = false;
         _sync = false;
         _heartbeat = false;
@@ -227,10 +320,17 @@ class EngineController extends ChangeNotifier {
   }
 
   @override
+  void notifyListeners() {
+    if (!_disposed) super.notifyListeners();
+  }
+
+  @override
   void dispose() {
+    _disposed = true;
+    _cancelPlayback();
     _timer.cancel();
     unawaited(_subscription.cancel());
-    unawaited(_bridge.dispose());
+    unawaited(_bridge.dispose().catchError((Object _) {}));
     super.dispose();
   }
 }

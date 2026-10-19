@@ -10,24 +10,29 @@ class VolumeKnob extends StatelessWidget {
     required this.value,
     required this.onChanged,
     this.diameter = 208,
+    this.showValue = true,
   });
+  final bool showValue;
   final double diameter;
   final double value;
-  final ValueChanged<double> onChanged;
+  final ValueChanged<double>? onChanged;
 
   @override
   Widget build(BuildContext context) {
     final volume = value.clamp(0, 100).toDouble();
-    void change(double next) => onChanged(next.clamp(0, 100).toDouble());
+    void change(double next) => onChanged?.call(next.clamp(0, 100).toDouble());
     return Semantics(
       label: 'Volumen de zona',
       value: '${volume.round()}%',
       increasedValue: '${(volume + 1).clamp(0, 100).round()}%',
       decreasedValue: '${(volume - 1).clamp(0, 100).round()}%',
-      onIncrease: () => change(volume + 1),
-      onDecrease: () => change(volume - 1),
+      onIncrease: onChanged == null ? null : () => change(volume + 1),
+      onDecrease: onChanged == null ? null : () => change(volume - 1),
       child: FocusableActionDetector(
-        mouseCursor: SystemMouseCursors.resizeUpDown,
+        enabled: onChanged != null,
+        mouseCursor: onChanged == null
+            ? SystemMouseCursors.basic
+            : SystemMouseCursors.resizeUpDown,
         shortcuts: const {
           SingleActivator(LogicalKeyboardKey.arrowUp): _VolumeIntent(1),
           SingleActivator(LogicalKeyboardKey.arrowRight): _VolumeIntent(1),
@@ -49,7 +54,9 @@ class VolumeKnob extends StatelessWidget {
             onVerticalDragUpdate: (details) =>
                 change(volume - details.delta.dy / 2),
             child: Tooltip(
-              message: 'Arrastra arriba/abajo o usa las flechas',
+              message: onChanged == null
+                  ? 'Volumen reportado por el motor · control desde el servidor'
+                  : 'Arrastra arriba/abajo o usa las flechas',
               child: SizedBox(
                 width: diameter,
                 height: diameter,
@@ -71,10 +78,14 @@ class VolumeKnob extends StatelessWidget {
                       height: diameter * .77,
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
-                        gradient: const LinearGradient(
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
-                          colors: [UiColors.border, UiColors.input],
+                        gradient: const SweepGradient(
+                          colors: [
+                            Color(0xff15191d),
+                            Color(0xff3d4247),
+                            Color(0xff101418),
+                            Color(0xff373b40),
+                            Color(0xff15191d),
+                          ],
                         ),
                         border: Border.all(
                           color: Focus.of(context).hasFocus
@@ -92,16 +103,20 @@ class VolumeKnob extends StatelessWidget {
                             padding: EdgeInsets.only(top: UiSpace.md),
                             child: SizedBox(
                               width: 3,
-                              height: 20,
-                              child: ColoredBox(color: UiColors.accent),
+                              height: 36,
+                              child: ColoredBox(color: Color(0xfff4efdf)),
                             ),
                           ),
                         ),
                       ),
                     ),
-                    IgnorePointer(
-                      child: Text('${volume.round()}%', style: UiType.heading),
-                    ),
+                    if (showValue)
+                      IgnorePointer(
+                        child: Text(
+                          '${volume.round()}%',
+                          style: UiType.heading,
+                        ),
+                      ),
                   ],
                 ),
               ),
@@ -123,7 +138,21 @@ class _VolumeArc extends CustomPainter {
   final double value;
   @override
   void paint(Canvas canvas, Size size) {
-    final rect = (Offset.zero & size).deflate(9);
+    final center = size.center(Offset.zero);
+    final radius = size.shortestSide / 2;
+    final tick = Paint()
+      ..strokeWidth = 1
+      ..color = UiColors.muted.withValues(alpha: .5);
+    for (var i = 0; i <= 50; i++) {
+      final angle = .75 * math.pi + i / 50 * 1.5 * math.pi;
+      final direction = Offset(math.cos(angle), math.sin(angle));
+      canvas.drawLine(
+        center + direction * (radius - 1),
+        center + direction * (radius - (i % 5 == 0 ? 11 : 6)),
+        tick,
+      );
+    }
+    final rect = (Offset.zero & size).deflate(17);
     final paint = Paint()
       ..style = PaintingStyle.stroke
       ..strokeWidth = 3

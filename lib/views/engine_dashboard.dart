@@ -6,25 +6,30 @@ import 'activity_view.dart';
 import 'configuration_view.dart';
 import 'overview_view.dart';
 import 'layout/utrack_shell.dart';
+import 'state/engine_view_state.dart';
 
 class EngineDashboard extends StatefulWidget {
   const EngineDashboard({
     super.key,
     required this.controller,
     this.testMode = false,
+    this.legacyLayout = false,
   });
   final EngineController controller;
-  final bool testMode;
+  final bool testMode, legacyLayout;
   @override
   State<EngineDashboard> createState() => _EngineDashboardState();
 }
 
 class _EngineDashboardState extends State<EngineDashboard> {
   int _page = 0;
+  EngineViewState? _engineState;
+  final _configurationKey = GlobalKey();
   late final AppLifecycleListener _lifecycle;
   @override
   void initState() {
     super.initState();
+    if (!widget.testMode) _engineState = EngineViewState(widget.controller);
     unawaited(widget.controller.initialize());
     _lifecycle = AppLifecycleListener(
       onExitRequested: () async {
@@ -41,6 +46,7 @@ class _EngineDashboardState extends State<EngineDashboard> {
   @override
   void dispose() {
     _lifecycle.dispose();
+    _engineState?.dispose();
     widget.controller.dispose();
     super.dispose();
   }
@@ -50,13 +56,18 @@ class _EngineDashboardState extends State<EngineDashboard> {
     listenable: widget.controller,
     builder: (context, _) {
       final c = widget.controller;
-      if (widget.testMode) {
+      if (!widget.legacyLayout) {
         return UtrackShell(
+          testMode: widget.testMode,
+          state: _engineState,
           status: c.statusLabel,
           connected: c.connected,
           settings: Column(
             children: [
-              ConfigurationView(controller: c),
+              KeyedSubtree(
+                key: _configurationKey,
+                child: ConfigurationView(controller: c),
+              ),
               const SizedBox(height: 24),
               ActivityView(controller: c),
             ],

@@ -474,3 +474,37 @@ Product illustration asset for premium dark audio software. A realistic compact 
 - **Validaciones:** dart analyze sin problemas; suite completa: 31 pruebas aprobadas y 1 integración de proceso omitida por condición existente. Cinco documentos de entrada comprobados sin enlaces locales rotos. Formato Dart y revisión de espacios aplicados.
 - **Pendientes:** acordar protocolo/capacidades con el motor, adaptar e inyectar datos reales, probar audio físico, preparar paquetes firmados y operación. No se presenta el contrato como una integración implementada.
 - **Estado:** Etapa 10 completada. Se cierran las etapas de UI acordadas; cualquier integración o publicación requiere un alcance posterior explícito.
+
+## Corrección visual posterior a las etapas
+
+- **Solicitud:** corregir la distancia entre el diseño de referencia y la UI que abre el ejecutable Windows.
+- **Causa comprobada:** EngineDashboard escogía el layout anterior cuando UTRACK_TEST=false. La UI nueva solo aparecía con modo test.
+- **Corrección:** el arranque normal abre UtrackShell también sin modo test. La vista local anterior queda accesible en Ajustes junto con configuración/actividad; el código de layout anterior permanece como opción explícita legacyLayout para compatibilidad. No se cambian servicios, bridge, motor o credenciales.
+- **Origen de datos:** header y sidebar pueden mostrar el estado real recibido en escritorio; plano, zonas y reproductor permanecen demostrativos, con rótulo visible. No se conectaron controles simulados al audio ni se fabricaron confirmaciones de producción.
+- **Rediseño:** negro carbón, bordes y superficies con profundidad sutil, marca circular metálica, sidebar más cercana a la referencia, plano isométrico v2, marcadores metálicos y tarjetas flotantes de volumen. Perilla con graduaciones, cuerpo metálico y volumen inferior; panel compacto con fuente, canales y canción. Reproductor fijo con menos texto auxiliar repetido.
+- **Recursos:** nuevo assets/images/zone_floor_plan_v2.png generado con imagegen integrado; original conservado. Solo el plano es una imagen, los controles siguen siendo widgets Flutter.
+- **Archivos principales:** engine_dashboard.dart, layout/utrack_shell.dart y utrack_sidebar.dart, design/ui_tokens.dart, widgets/metal_dial.dart (nuevo), zone_map.dart, selected_zone_panel.dart, volume_knob.dart, section_card.dart y player_bar.dart; registro de asset en pubspec y pruebas/capturas adaptadas.
+- **Validaciones:** suite de 31 pruebas aprobada con 1 integración omitida; verificación adicional final de capturas y acceso a Ajustes: 8 pruebas aprobadas. Análisis Dart sin problemas. Capturas en cinco tamaños y con texto ampliado/movimiento reducido; referencia final build/previews/stage9-1672x941.png.
+- **Distribución:** nuevo paquete Windows release con UTRACK_TEST=false y motor 0.8.0 existente. Debe distinguirse del ZIP anterior que abría la vista antigua.
+
+### Prompt del plano v2 (imagegen integrado)
+
+High-end architectural visualization asset for a dark luxury professional audio desktop application. Square image. A fully visible roofless isometric dollhouse apartment, elevated camera around 55 degrees, rotate floor plan about 18 degrees clockwise in image so front edge slants upwards to the right, strongly three dimensional raised outer walls. Footprint fills 90% of image. Four spaces within one coherent open-plan apartment: terrace with dark stone and plants in upper left, warm wood kitchen upper right, beige sectional living room with round black coffee table lower left, long black dining table with chairs lower right. Moody cinematic warm indirect light, champagne highlights, charcoal floor tiles, extremely realistic miniature architectural render, deep shadows, luxurious materials. Background almost black #080b0e with no border. This is a standalone floor plan illustration, not an app screenshot. NO text, NO buttons, NO dials, NO markers, NO overlays, NO watermark, NO UI. Do not flatten into a top-down floor plan. Preserve isometric angled perspective with the exterior foundation clearly visible.
+
+## Integración de producción posterior a las etapas — 19/10/2026
+
+Alcance ampliado por el usuario: usar parámetros reales del motor existente y retirar simulaciones de producción. No crear habitaciones, canciones, dispositivos ni métricas de ejemplo; dejar campos ausentes preparados. El plano sigue siendo ilustrativo y solo sitúa las zonas recibidas.
+
+- AudioViewState separa presentación de origen; EngineViewState transforma reportes reales y ZonePreviewState queda reservado para test explícito.
+- Configuración, servidor/token, inspección e inicio/parada utilizan el bridge existente. El repositorio music-engine no se modifica.
+- Solo lectura para controles de zona no admitidos por el protocolo desktop; datos ausentes permanecen desconocidos, sin temporizador de reproducción ni métricas calculadas.
+- Selección por ID, cero zonas, errores recuperables, frescura y limpieza de listeners/procesos cubiertos por pruebas.
+- Documentación vigente: docs/PRODUCCION.md, ARQUITECTURA.md e INTEGRACION.md. Las descripciones de simulación en etapas anteriores son históricas.
+
+Validación final de integración: dart analyze sin incidencias; suite completa 37 correctas y 1 opt-in omitida en la suite; esa prueba de proceso se ejecutó por separado con ENGINE_BRIDGE_TEST=1 y pasó. Compilación Windows release UTRACK_TEST=false correcta. Paquete completo verificado: Releases/Utrack-Desktop-0.1.0-windows-x64-engine-real.zip. No se conectó al servidor operativo ni se probaron sus credenciales o el audio físico.
+
+## Conexiones de reproducción Desktop — 19/10/2026
+
+Alcance acotado por el usuario: conectar a Desktop las capacidades existentes de reproducción Go y documentar las demás APIs, sin implementarlas. Se añadieron pausa, reanudar, siguiente/anterior y selección de canción asignada; Biblioteca muestra canciones ID por zona. Motor 0.8.1 anuncia capacidades opcionales del protocolo 1 y recibe solicitudes correlacionadas por stdin. Flutter espera confirmación sin actualizar el estado de reproducción por anticipado. Los comandos remotos conservan su diario; los locales se deduplican en memoria por sesión.
+
+Backend Laravel inspeccionado para documentar rutas y archivos; sin modificaciones. Documento aparte: docs/CONEXIONES_DESKTOP_Y_APIS_PENDIENTES.md. Regresión Go completa correcta, análisis Dart limpio y 40 pruebas Flutter correctas; prueba del ejecutable nativo ejecutada aparte. Pendiente validación con servidor/token operativo y hardware real.

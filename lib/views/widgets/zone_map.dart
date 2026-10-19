@@ -3,20 +3,27 @@ import '../design/ui_tokens.dart';
 import 'section_card.dart';
 import 'status_indicator.dart';
 import 'ui_controls.dart';
+import 'metal_dial.dart';
 import '../state/zone_preview_state.dart';
 
 /// Local presentation state only: no audio, persistence, or engine commands.
 class ZoneMap extends StatefulWidget {
-  const ZoneMap({super.key, this.state, this.showControls = true});
+  const ZoneMap({
+    super.key,
+    this.state,
+    this.showControls = true,
+    this.maxSceneWidth = 620,
+  });
+  final double maxSceneWidth;
   final bool showControls;
-  final ZonePreviewState? state;
+  final AudioViewState? state;
   @override
   State<ZoneMap> createState() => _ZoneMapState();
 }
 
 class _ZoneMapState extends State<ZoneMap> {
-  late final ZonePreviewState _state;
-  List<PreviewZone> get _zones => _state.zones;
+  late final AudioViewState _state;
+  List<ZoneViewData> get _zones => _state.zones;
   int get _selected => _state.selectedIndex;
   @override
   void initState() {
@@ -36,102 +43,35 @@ class _ZoneMapState extends State<ZoneMap> {
     builder: (context, _) => SectionCard(
       title: 'Zonas de audio',
       compact: !widget.showControls,
-      subtitle: 'Selecciona una habitación · datos simulados',
+      subtitle: _state.isSimulated
+          ? 'Selecciona una habitación · datos simulados'
+          : 'Zonas del servidor · plano y posiciones ilustrativos',
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Center(
-            child: ConstrainedBox(
-              constraints: BoxConstraints(
-                maxWidth: widget.showControls ? 520 : 440,
-              ),
-              child: RepaintBoundary(
-                child: LayoutBuilder(
-                  builder: (context, constraints) => AspectRatio(
-                    aspectRatio: 1,
-                    child: ClipRRect(
-                      borderRadius: UiRadii.control,
-                      child: Stack(
-                        children: [
-                          Positioned.fill(
-                            child: Image.asset(
-                              'assets/images/zone_floor_plan.png',
-                              fit: BoxFit.contain,
-                              excludeFromSemantics: true,
-                              errorBuilder: (context, error, stack) =>
-                                  const Center(
-                                    child: Text(
-                                      'Plano no disponible',
-                                      style: UiType.caption,
-                                    ),
-                                  ),
-                            ),
-                          ),
-                          for (var i = 0; i < _zones.length; i++)
-                            Positioned(
-                              left:
-                                  _zones[i].position.dx * constraints.maxWidth -
-                                  24,
-                              top:
-                                  _zones[i].position.dy * constraints.maxWidth -
-                                  24,
-                              child: Semantics(
-                                label: 'Seleccionar ${_zones[i].name}',
-                                selected: _selected == i,
-                                child: Tooltip(
-                                  message:
-                                      '${_zones[i].name} · ${_zones[i].volume.round()}% · ${_state.isActive(i) ? 'Activa' : 'Inactiva'}',
-                                  child: SizedBox(
-                                    width: 48,
-                                    height: 48,
-                                    child: Material(
-                                      color: UiColors.input,
-                                      shape: CircleBorder(
-                                        side: BorderSide(
-                                          color: _selected == i
-                                              ? UiColors.accent
-                                              : UiColors.border,
-                                          width: _selected == i ? 2 : 1,
-                                        ),
-                                      ),
-                                      child: InkWell(
-                                        customBorder: const CircleBorder(),
-                                        onTap: () => _state.select(i),
-                                        child: Icon(
-                                          Icons.speaker,
-                                          size: 20,
-                                          color: _state.isActive(i)
-                                              ? UiColors.operational
-                                              : UiColors.muted,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
+          _scene(),
+          if (_zones.isEmpty)
+            const Padding(
+              padding: EdgeInsets.all(UiSpace.lg),
+              child: Text(
+                'No hay zonas recibidas. Configura el servidor y token, inicia el motor y revisa la asignación de zonas en el servidor.',
+                style: UiType.body,
               ),
             ),
-          ),
           const SizedBox(height: UiSpace.lg),
           if (widget.showControls)
             Text(
-              'Zona seleccionada: ${_zones[_selected].name}',
+              'Zona seleccionada: ${_state.selected.name}',
               style: UiType.title,
             ),
           const SizedBox(height: UiSpace.sm),
           if (widget.showControls)
             const Text(
-              'Controles de prueba · cambios solo en esta vista',
+              'Volumen y reproducción de zona se administran desde el servidor',
               style: UiType.caption,
             ),
           const SizedBox(height: UiSpace.lg),
-          if (!widget.showControls)
+          if (!widget.showControls && MediaQuery.sizeOf(context).width < 900)
             Wrap(
               spacing: UiSpace.sm,
               runSpacing: UiSpace.sm,
@@ -167,6 +107,129 @@ class _ZoneMapState extends State<ZoneMap> {
     ),
   );
 
+  Widget _scene() => LayoutBuilder(
+    builder: (context, outer) {
+      final sceneWidth = outer.maxWidth
+          .clamp(0, widget.maxSceneWidth)
+          .toDouble();
+      return Center(
+        child: SizedBox(
+          width: sceneWidth,
+          child: AspectRatio(
+            aspectRatio: 1,
+            child: RepaintBoundary(
+              child: LayoutBuilder(
+                builder: (context, bounds) {
+                  final side = bounds.maxWidth;
+                  final callouts = side >= 430;
+                  const labels = [
+                    Offset(.01, .13),
+                    Offset(.74, .06),
+                    Offset(.08, .80),
+                    Offset(.74, .71),
+                  ];
+                  return Stack(
+                    clipBehavior: Clip.hardEdge,
+                    children: [
+                      Positioned.fill(
+                        child: Image.asset(
+                          'assets/images/zone_floor_plan_v2.png',
+                          fit: BoxFit.contain,
+                          excludeFromSemantics: true,
+                          errorBuilder: (context, error, stack) => const Center(
+                            child: Text(
+                              'Plano no disponible',
+                              style: UiType.caption,
+                            ),
+                          ),
+                        ),
+                      ),
+                      for (var i = 0; i < _zones.length; i++)
+                        Positioned(
+                          left: _zones[i].position.dx * side - 26,
+                          top: _zones[i].position.dy * side - 26,
+                          child: Semantics(
+                            label: 'Seleccionar ${_zones[i].name}',
+                            selected: _selected == i,
+                            child: Tooltip(
+                              message:
+                                  '${_zones[i].name} · ${_zones[i].volume.round()}% · ${_state.isActive(i) ? 'Activa' : 'Inactiva'}',
+                              child: MetalDial(
+                                size: 52,
+                                selected: _selected == i,
+                                onTap: () => _state.select(i),
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (callouts)
+                        for (var i = 0; i < _zones.length; i++)
+                          Positioned(
+                            left: labels[i].dx * side,
+                            top: labels[i].dy * side,
+                            width: side * .25,
+                            child: _callout(i),
+                          ),
+                    ],
+                  );
+                },
+              ),
+            ),
+          ),
+        ),
+      );
+    },
+  );
+
+  Widget _callout(int index) {
+    final zone = _zones[index];
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xee080c10),
+        borderRadius: UiRadii.card,
+        border: Border.all(
+          color: _selected == index
+              ? UiColors.accent.withValues(alpha: .8)
+              : UiColors.border,
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(zone.name, style: UiType.body),
+          Row(
+            children: [
+              const Icon(Icons.volume_up, size: 15),
+              Expanded(
+                child: SliderTheme(
+                  data: SliderTheme.of(context).copyWith(
+                    trackHeight: 2,
+                    thumbShape: const RoundSliderThumbShape(
+                      enabledThumbRadius: 3,
+                    ),
+                    overlayShape: SliderComponentShape.noOverlay,
+                  ),
+                  child: Slider(
+                    value: zone.volume,
+                    max: 100,
+                    onChanged: _state.canControlZones
+                        ? (value) => _state.setVolume(index, value)
+                        : null,
+                  ),
+                ),
+              ),
+              Text(
+                '${zone.volume.round()}%',
+                style: UiType.caption.copyWith(fontSize: 10),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _zoneControl(int index) {
     final zone = _zones[index];
     final selected = index == _selected;
@@ -195,7 +258,7 @@ class _ZoneMapState extends State<ZoneMap> {
                 label:
                     '${_state.isActive(index) ? 'Desactivar' : 'Activar'} ${zone.name} (simulado)',
                 selected: zone.active,
-                onPressed: _state.engineRunning
+                onPressed: _state.canControlZones && _state.engineRunning
                     ? () => _state.toggle(index)
                     : null,
               ),
@@ -213,7 +276,9 @@ class _ZoneMapState extends State<ZoneMap> {
           UiSlider(
             label: 'Volumen ${zone.name}',
             value: zone.volume,
-            onChanged: (value) => _state.setVolume(index, value),
+            onChanged: _state.canControlZones
+                ? (value) => _state.setVolume(index, value)
+                : null,
           ),
         ],
       ),

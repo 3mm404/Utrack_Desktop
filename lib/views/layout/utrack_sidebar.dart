@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
+import '../widgets/metal_dial.dart';
 
 const shellLabels = [
   'Inicio',
@@ -10,10 +11,10 @@ const shellLabels = [
 ];
 const shellIcons = [
   Icons.home_outlined,
-  Icons.grid_view,
+  Icons.multitrack_audio,
   Icons.library_music_outlined,
   Icons.speaker_group_outlined,
-  Icons.tune,
+  Icons.settings,
 ];
 
 class UtrackSidebar extends StatelessWidget {
@@ -32,7 +33,7 @@ class UtrackSidebar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-    width: expanded ? 224 : 80,
+    width: expanded ? 238 : 80,
     decoration: const BoxDecoration(
       color: UiColors.surface,
       border: Border(right: UiEffects.border),
@@ -40,18 +41,26 @@ class UtrackSidebar extends StatelessWidget {
     child: Column(
       children: [
         Padding(
-          padding: const EdgeInsets.symmetric(vertical: UiSpace.xl),
+          padding: const EdgeInsets.symmetric(vertical: UiSpace.xxl),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(Icons.multitrack_audio, color: UiColors.accent),
+              const MetalDial(size: 54, brand: true),
               if (expanded)
                 const Padding(
                   padding: EdgeInsets.only(left: UiSpace.md),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text('UTRACK', style: UiType.title),
+                      Text(
+                        'UTRACK',
+                        style: TextStyle(
+                          fontSize: 19,
+                          letterSpacing: 2.5,
+                          fontWeight: FontWeight.w600,
+                          color: UiColors.text,
+                        ),
+                      ),
                       Text('ENGINE', style: UiType.caption),
                     ],
                   ),
@@ -61,18 +70,28 @@ class UtrackSidebar extends StatelessWidget {
         ),
         Expanded(
           child: ListView(
-            padding: const EdgeInsets.all(UiSpace.sm),
+            padding: EdgeInsets.symmetric(
+              horizontal: expanded ? 20 : 8,
+              vertical: 8,
+            ),
             children: [
               for (var i = 0; i < shellLabels.length; i++)
                 Padding(
-                  padding: const EdgeInsets.only(bottom: UiSpace.sm),
+                  padding: const EdgeInsets.only(bottom: UiSpace.xl),
                   child: Tooltip(
                     message: shellLabels[i],
                     child: Material(
                       color: selected == i
                           ? UiColors.elevated
                           : Colors.transparent,
-                      borderRadius: UiRadii.control,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: UiRadii.card,
+                        side: BorderSide(
+                          color: selected == i
+                              ? UiColors.accent.withValues(alpha: .4)
+                              : Colors.transparent,
+                        ),
+                      ),
                       child: InkWell(
                         borderRadius: UiRadii.control,
                         onTap: () => onSelected(i),

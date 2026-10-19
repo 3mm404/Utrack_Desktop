@@ -8,13 +8,17 @@ class ZoneStatus {
     required this.mode,
     required this.channels,
     this.songId,
+    this.positionMs,
     this.error,
+    this.songs = const [],
   });
 
   final String id, name, state, playlist, mode;
   final int volume;
+  final int? positionMs;
   final List<int> channels;
   final String? songId, error;
+  final List<String> songs;
 
   factory ZoneStatus.fromJson(
     Map<String, dynamic> json,
@@ -29,7 +33,11 @@ class ZoneStatus {
       playlist: info['playlist'] as String? ?? '',
       mode: json['channel_mode'] as String? ?? '',
       channels: (output?['channels'] as List? ?? []).cast<int>(),
-      songId: json['song_id'] as String?,
+      songId: json['song_id']?.toString(),
+      songs: (info['songs'] as List? ?? []).whereType<String>().toList(
+        growable: false,
+      ),
+      positionMs: (json['position_ms'] as num?)?.toInt(),
       error: (json['error'] as Map<String, dynamic>?)?['message'] as String?,
     );
   }

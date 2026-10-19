@@ -3,16 +3,16 @@ import '../design/ui_tokens.dart';
 import 'ui_controls.dart';
 import '../state/zone_preview_state.dart';
 
-/// Simulated player driven by presentation state; never plays audio.
+/// Displays observed playback; enables transport only when supported.
 class PlayerBar extends StatefulWidget {
   const PlayerBar({super.key, this.state});
-  final ZonePreviewState? state;
+  final AudioViewState? state;
   @override
   State<PlayerBar> createState() => _PlayerBarState();
 }
 
 class _PlayerBarState extends State<PlayerBar> {
-  late final ZonePreviewState _state;
+  late final AudioViewState _state;
   @override
   void initState() {
     super.initState();
@@ -25,7 +25,7 @@ class _PlayerBarState extends State<PlayerBar> {
     super.dispose();
   }
 
-  PreviewTrack get _track => _state.track;
+  TrackViewData get _track => _state.track;
   double get _position => _state.selected.progress;
   double get _volume => _state.selected.volume;
   bool get _playing => _state.selected.playing;
@@ -61,7 +61,13 @@ class _PlayerBarState extends State<PlayerBar> {
             ),
             const SizedBox(height: UiSpace.xs),
             Text(
-              !_state.engineRunning
+              !_state.isSimulated
+                  ? (!_state.hasSelection
+                        ? 'Sin zona seleccionada'
+                        : !_state.fresh
+                        ? 'Sin actualización'
+                        : (_state.selected.observedState ?? 'No reportado'))
+                  : !_state.engineRunning
                   ? 'Motor detenido · simulado'
                   : _playing
                   ? 'Reproduciendo · simulado'
@@ -81,29 +87,47 @@ class _PlayerBarState extends State<PlayerBar> {
         icon: Icons.shuffle,
         label: 'Aleatorio',
         selected: _shuffle,
-        onPressed: () => _state.toggleShuffle(),
+        onPressed: _state.canControlZones ? _state.toggleShuffle : null,
       ),
       UiIconControl(
         icon: Icons.skip_previous,
         label: 'Canción anterior',
-        onPressed: () => _skip(-1),
+        onPressed: _state.canPlayback('previous') ? () => _skip(-1) : null,
       ),
       CircularControl(
         icon: _playing ? Icons.pause : Icons.play_arrow,
-        label: _playing ? 'Pausar vista previa' : 'Reproducir vista previa',
+        label: !_state.isSimulated
+            ? (_playing
+                  ? 'Pausar'
+                  : _state.selected.observedState == 'En pausa'
+                  ? 'Reanudar'
+                  : 'Reproducir')
+            : _playing
+            ? 'Pausar vista previa'
+            : 'Reproducir vista previa',
         selected: _playing,
-        onPressed: _state.engineRunning ? _state.togglePlayback : null,
+        onPressed:
+            _state.canPlayback(
+                  _playing
+                      ? 'pause'
+                      : _state.selected.observedState == 'En pausa'
+                      ? 'resume'
+                      : 'play',
+                ) &&
+                _state.engineRunning
+            ? _state.togglePlayback
+            : null,
       ),
       UiIconControl(
         icon: Icons.skip_next,
         label: 'Canción siguiente',
-        onPressed: () => _skip(1),
+        onPressed: _state.canPlayback('next') ? () => _skip(1) : null,
       ),
       UiIconControl(
         icon: Icons.repeat,
         label: 'Repetir',
         selected: _repeat,
-        onPressed: () => _state.toggleRepeat(),
+        onPressed: _state.canControlZones ? _state.toggleRepeat : null,
       ),
     ],
   );
@@ -115,7 +139,7 @@ class _PlayerBarState extends State<PlayerBar> {
         label: _volume == 0
             ? 'Restaurar volumen del reproductor'
             : 'Silenciar reproductor',
-        onPressed: _state.toggleMute,
+        onPressed: _state.canControlZones ? _state.toggleMute : null,
       ),
       Expanded(
         child: Slider(
@@ -124,30 +148,46 @@ class _PlayerBarState extends State<PlayerBar> {
           label: '${_volume.round()}%',
           semanticFormatterCallback: (value) =>
               'Volumen del reproductor: ${value.round()}%',
-          onChanged: (value) => _state.setVolume(_state.selectedIndex, value),
+          onChanged: _state.canControlZones
+              ? (value) => _state.setVolume(_state.selectedIndex, value)
+              : null,
         ),
       ),
       SizedBox(
         width: 36,
-        child: Text('${_volume.round()}%', style: UiType.caption),
+        child: Text(
+          _state.hasSelection ? '${_volume.round()}%' : '—',
+          style: UiType.caption,
+        ),
       ),
     ],
   );
 
   Widget _progress() => Row(
     children: [
-      Text(_time(_position), style: UiType.caption),
+      Text(
+        !_state.isSimulated && _state.selected.positionMs == null
+            ? '—'
+            : _time(_position),
+        style: UiType.caption,
+      ),
       Expanded(
         child: Slider(
-          value: _position,
-          max: _track.seconds.toDouble(),
+          value: _track.seconds <= 0
+              ? 0
+              : _position.clamp(0, _track.seconds).toDouble(),
+          max: _track.seconds > 0 ? _track.seconds.toDouble() : 1,
           label: _time(_position),
-          semanticFormatterCallback: (value) =>
-              'Posición simulada: ${_time(value)} de ${_time(_track.seconds.toDouble())}',
-          onChanged: _state.seek,
+          semanticFormatterCallback: (value) => _state.isSimulated
+              ? 'Posición simulada: ${_time(value)} de ${_time(_track.seconds.toDouble())}'
+              : 'Posición reportada; duración no disponible',
+          onChanged: _state.canControlZones ? _state.seek : null,
         ),
       ),
-      Text(_time(_track.seconds.toDouble()), style: UiType.caption),
+      Text(
+        _track.seconds == 0 ? '—' : _time(_track.seconds.toDouble()),
+        style: UiType.caption,
+      ),
     ],
   );
 
@@ -194,11 +234,14 @@ class _PlayerBarState extends State<PlayerBar> {
                   SizedBox(width: 300, child: _volumeControl()),
                 ],
                 _progress(),
-                const Text(
-                  'VISTA PREVIA · Sin audio real. Reloj simulado; controles aplicados a la zona seleccionada.',
-                  style: UiType.caption,
-                  textAlign: TextAlign.center,
-                ),
+                if (!_state.isSimulated)
+                  Text(
+                    _state.playbackPending
+                        ? 'Esperando confirmación del motor…'
+                        : 'Reproducción por zona desde Desktop · Volumen y asignaciones desde el servidor.',
+                    style: UiType.caption,
+                    textAlign: TextAlign.center,
+                  ),
               ],
             );
           },

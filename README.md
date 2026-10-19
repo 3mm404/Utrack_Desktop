@@ -1,40 +1,40 @@
-# UTRACK Engine / Utrack Desktop
+# UTRACK Desktop
 
-Aplicación Flutter para administrar un motor de audio local. La interfaz profesional desarrollada en las etapas 0–10 es una **vista de pruebas**, con datos simulados y sin audio real.
+Interfaz Flutter para el motor local de audio. En producción muestra las zonas y los estados reportados por el motor, sin habitaciones, canciones, dispositivos ni métricas de ejemplo. El plano y la fotografía de equipo son ilustrativos.
 
-## Leer primero
+## Uso de producción en Windows
 
-| Documento | Contenido |
-| --- | --- |
-| [Arquitectura](docs/ARQUITECTURA.md) | Carpetas, flujo de datos, responsabilidades y límites actuales |
-| [Integración](docs/INTEGRACION.md) | Contrato tipado propuesto, brechas del protocolo y conexión futura |
-| [Mantenimiento y actualizaciones](docs/MANTENIMIENTO.md) | Entornos, pruebas, versiones, distribución y recuperación |
-| [Plan de trabajo](docs/ROADMAP.md) | Prioridades, responsables sugeridos y criterios de entrega |
-| [Registro de etapas](DESARROLLO_UI_POR_ETAPAS.md) | Alcance aprobado, decisiones, validaciones y prompts de recursos |
+1. Ejecutar el paquete completo, con `engine.exe` junto a la aplicación.
+2. Abrir Ajustes, ingresar servidor HTTPS y token, elegir la salida y guardar.
+3. Iniciar motor. La conexión se confirma mediante sincronización, heartbeat y estados recientes.
+4. Las zonas aparecen cuando el servidor las entrega al motor.
 
-## Ejecutar la UI de pruebas
-
-```sh
-flutter pub get
-flutter run -d chrome --dart-define=UTRACK_TEST=true
-```
-
-En escritorio usa `-d windows` o, desde un Mac preparado, `-d macos`. Web siempre utiliza modo test. En Windows el CMake actual también exige el archivo `windows/engine/engine.exe` para empaquetar, incluso con la bandera test; consulta Mantenimiento antes de compilar.
+La aplicación permite configurar e iniciar/detener el motor. Con el motor 0.8.1 también permite pausa, reanudar, siguiente, anterior y reproducir una canción asignada desde Biblioteca. Volumen, canales, seek, aleatorio y repetición conservan sus controles deshabilitados.
 
 ```sh
 flutter analyze
 flutter test
-flutter build web --release --dart-define=UTRACK_TEST=true
+flutter build windows --release --dart-define=UTRACK_TEST=false
 ```
 
-Salida web: `build/web`. Capturas regenerables: `flutter test test/ui_visual_review_test.dart`, en `build/previews/`.
+El empaquetado necesita `windows/engine/engine.exe`. Salida: `build/windows/x64/runner/Release`; distribuir toda la carpeta.
 
-## Estado real del producto
+## Documentación
 
-- UI: plano, zonas, perilla, dispositivo, métricas y reproductor adaptables; estado simulado compartido en memoria.
-- Escritorio sin `UTRACK_TEST=true`: conserva la vista anterior y `ProcessEngineBridge` para inspección, configuración e inicio/parada del ejecutable local. No activa automáticamente la UI nueva.
-- Hay dos simulaciones distintas: `DemoEngineBridge` alimenta el controlador anterior; `ZonePreviewState` alimenta la UI nueva. No están sincronizadas.
-- Etapa 10: contrato de presentación declarado en `lib/views/contracts/audio_ui_port.dart`. Aún no tiene adaptadores ni está conectado a los widgets.
-- Motor, servidor, biblioteca real, persistencia de la nueva UI y actualizador: pendientes de integración/desarrollo según las guías.
+| Documento | Contenido |
+| --- | --- |
+| [Conexiones Desktop y APIs pendientes](docs/CONEXIONES_DESKTOP_Y_APIS_PENDIENTES.md) | Funciones conectadas, flujo y archivos de backend/Go/Flutter |
+| [Producción](docs/PRODUCCION.md) | Configuración, datos disponibles y límites comprobados |
+| [Arquitectura](docs/ARQUITECTURA.md) | Estructura y responsabilidades |
+| [Integración](docs/INTEGRACION.md) | Flujo implementado y extensiones pendientes del protocolo |
+| [Mantenimiento](docs/MANTENIMIENTO.md) | Compilación, actualizaciones y distribución |
+| [Plan de trabajo](docs/ROADMAP.md) | Próximas entregas y responsables |
+| [Registro](DESARROLLO_UI_POR_ETAPAS.md) | Historial de etapas y decisiones |
 
-No se debe presentar el modo test como reproducción operativa ni distribuir sus métricas como mediciones reales. El alcance realizado sigue siendo UI y preparación documental; el backend y el motor no se modificaron en estas etapas.
+## Demostración explícita
+
+```sh
+flutter run -d chrome --dart-define=UTRACK_TEST=true
+```
+
+Solo esa bandera habilita el simulador. Web sin ella informa que el motor local requiere escritorio; no cambia silenciosamente a datos de ejemplo. macOS necesita preparar y validar su motor nativo antes de uso productivo.

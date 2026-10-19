@@ -10,6 +10,8 @@ class EngineStatusPanel extends StatelessWidget {
     super.key,
     this.running = true,
     this.compact = false,
+    this.simulated = true,
+    this.statusLabel,
     this.onToggleEngine,
     this.activeZones = 2,
     this.totalZones = 4,
@@ -17,12 +19,13 @@ class EngineStatusPanel extends StatelessWidget {
     this.latencyMs = 12,
   }) : assert(totalZones >= 0),
        assert(activeZones >= 0 && activeZones <= totalZones),
-       assert(cpu >= 0 && cpu <= 100),
-       assert(latencyMs >= 0);
-  final bool running, compact;
+       assert(cpu == null || (cpu >= 0 && cpu <= 100)),
+       assert(latencyMs == null || latencyMs >= 0);
+  final bool running, compact, simulated;
+  final String? statusLabel;
   final VoidCallback? onToggleEngine;
   final int activeZones, totalZones;
-  final double cpu, latencyMs;
+  final double? cpu, latencyMs;
 
   @override
   Widget build(BuildContext context) => compact
@@ -34,8 +37,12 @@ class EngineStatusPanel extends StatelessWidget {
               : UiIconControl(
                   icon: running ? Icons.stop : Icons.play_arrow,
                   label: running
-                      ? 'Detener motor simulado'
-                      : 'Iniciar motor simulado',
+                      ? (simulated
+                            ? 'Detener motor simulado'
+                            : 'Detener motor real')
+                      : (simulated
+                            ? 'Iniciar motor simulado'
+                            : 'Iniciar motor real'),
                   onPressed: onToggleEngine,
                 ),
           child: Column(
@@ -47,22 +54,30 @@ class EngineStatusPanel extends StatelessWidget {
               ),
               const SizedBox(height: UiSpace.sm),
               StatusIndicator(
-                label: running
-                    ? 'En ejecución · simulado'
-                    : 'Detenido · simulado',
+                label:
+                    statusLabel ??
+                    (running
+                        ? 'En ejecución · simulado'
+                        : 'Detenido · simulado'),
                 status: running ? UiStatus.operational : UiStatus.inactive,
               ),
               const SizedBox(height: UiSpace.lg),
               _PerformanceMetric(
-                label: 'CPU · simulada',
-                value: '${cpu.toStringAsFixed(0)}%',
-                progress: cpu / 100,
+                label: simulated ? 'CPU · simulada' : 'CPU',
+                value: cpu == null
+                    ? 'No reportado'
+                    : '${cpu!.toStringAsFixed(0)}%',
+                progress: cpu == null ? null : cpu! / 100,
               ),
               const SizedBox(height: UiSpace.md),
               _PerformanceMetric(
-                label: 'Latencia · simulada',
-                value: '${latencyMs.toStringAsFixed(0)} ms',
-                progress: (latencyMs / 100).clamp(0, 1),
+                label: simulated ? 'Latencia · simulada' : 'Latencia',
+                value: latencyMs == null
+                    ? 'No reportada'
+                    : '${latencyMs!.toStringAsFixed(0)} ms',
+                progress: latencyMs == null
+                    ? null
+                    : (latencyMs! / 100).clamp(0, 1),
               ),
             ],
           ),
@@ -70,9 +85,9 @@ class EngineStatusPanel extends StatelessWidget {
       : SectionCard(
           title: 'Estado general',
           compact: compact,
-          subtitle: compact
-              ? 'Datos simulados'
-              : 'Métricas de ejemplo · simuladas',
+          subtitle: simulated
+              ? 'Métricas de ejemplo · simuladas'
+              : 'Estados del motor local',
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
@@ -88,9 +103,11 @@ class EngineStatusPanel extends StatelessWidget {
               const Divider(),
               const SizedBox(height: UiSpace.sm),
               StatusIndicator(
-                label: running
-                    ? 'Motor en ejecución · simulado'
-                    : 'Motor detenido · simulado',
+                label:
+                    statusLabel ??
+                    (running
+                        ? 'Motor en ejecución · simulado'
+                        : 'Motor detenido · simulado'),
                 status: running ? UiStatus.operational : UiStatus.inactive,
               ),
               if (onToggleEngine != null)
@@ -101,28 +118,40 @@ class EngineStatusPanel extends StatelessWidget {
                     icon: Icon(running ? Icons.stop : Icons.play_arrow),
                     label: Text(
                       running
-                          ? 'Detener motor simulado'
-                          : 'Iniciar motor simulado',
+                          ? (simulated
+                                ? 'Detener motor simulado'
+                                : 'Detener motor real')
+                          : (simulated
+                                ? 'Iniciar motor simulado'
+                                : 'Iniciar motor real'),
                     ),
                   ),
                 ),
               const SizedBox(height: UiSpace.xl),
               _PerformanceMetric(
                 label: 'Uso de CPU',
-                value: '${cpu.toStringAsFixed(0)}%',
-                progress: cpu / 100,
+                value: cpu == null
+                    ? 'No reportado'
+                    : '${cpu!.toStringAsFixed(0)}%',
+                progress: cpu == null ? null : cpu! / 100,
               ),
               const SizedBox(height: UiSpace.xl),
               _PerformanceMetric(
                 label: 'Latencia',
-                value: '${latencyMs.toStringAsFixed(0)} ms',
-                progress: (latencyMs / 100).clamp(0, 1),
+                value: latencyMs == null
+                    ? 'No reportada'
+                    : '${latencyMs!.toStringAsFixed(0)} ms',
+                progress: latencyMs == null
+                    ? null
+                    : (latencyMs! / 100).clamp(0, 1),
                 description: compact ? null : 'Escala visual: 0–100 ms',
               ),
               const SizedBox(height: UiSpace.xl),
               if (!compact)
-                const Text(
-                  'Valores de demostración. No son mediciones del sistema.',
+                Text(
+                  simulated
+                      ? 'Valores de demostración. No son mediciones del sistema.'
+                      : 'No reportado indica que el protocolo no ofrece esa medición.',
                   style: UiType.caption,
                 ),
             ],
@@ -139,7 +168,7 @@ class _PerformanceMetric extends StatelessWidget {
   });
   final String label, value;
   final String? description;
-  final double progress;
+  final double? progress;
   @override
   Widget build(BuildContext context) => Column(
     crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -151,15 +180,21 @@ class _PerformanceMetric extends StatelessWidget {
         ],
       ),
       const SizedBox(height: UiSpace.md),
-      LinearProgressIndicator(
-        value: progress,
-        minHeight: UiSpace.xs,
-        borderRadius: UiRadii.control,
-        color: UiColors.accent,
-        backgroundColor: UiColors.border,
-        semanticsLabel: '$label: $value · simulado',
-        semanticsValue: '${(progress * 100).round()}%',
-      ),
+      if (progress == null)
+        const SizedBox(
+          height: UiSpace.xs,
+          child: ColoredBox(color: UiColors.border),
+        )
+      else
+        LinearProgressIndicator(
+          value: progress,
+          minHeight: UiSpace.xs,
+          borderRadius: UiRadii.control,
+          color: UiColors.accent,
+          backgroundColor: UiColors.border,
+          semanticsLabel: '$label: $value',
+          semanticsValue: '${(progress! * 100).round()}%',
+        ),
       if (description != null) ...[
         const SizedBox(height: UiSpace.sm),
         Text(description!, style: UiType.caption),

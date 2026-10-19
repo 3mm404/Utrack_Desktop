@@ -1,3 +1,5 @@
+import 'package:utrack_v1/views/layout/utrack_header.dart';
+import 'package:utrack_v1/views/widgets/zone_map.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -38,10 +40,22 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Inicio'));
+    await tester.pumpAndSettle();
+    expect(find.byType(ZoneMap), findsOneWidget);
+    expect(
+      tester.widget<UtrackHeader>(find.byType(UtrackHeader)).status,
+      controller.statusLabel,
+    );
+    await tester.tap(find.byTooltip('Abrir ajustes'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Iniciar motor'));
     await tester.tap(find.text('Iniciar motor'));
     await tester.pumpAndSettle();
     bridge.connected();
     await tester.pump();
+    await tester.tap(find.byTooltip('Inicio'));
+    await tester.pumpAndSettle();
     expect(find.text('Terraza'), findsWidgets);
     expect(find.text('Reproduciendo'), findsWidgets);
     expect(tester.takeException(), isNull);
@@ -56,9 +70,12 @@ void main() {
       ).writeAsBytes(bytes!.buffer.asUint8List());
       image.dispose();
     });
+    await tester.ensureVisible(find.text('Detener motor'));
     await tester.tap(find.text('Detener motor'));
     await tester.pumpAndSettle();
-    await tester.tap(find.text('Configuración'));
+    await tester.tap(find.byTooltip('Abrir ajustes'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Conecta tu equipo'));
     await tester.pumpAndSettle();
     expect(find.text('Conecta tu equipo'), findsOneWidget);
     await tester.ensureVisible(find.text('ASIO · canales independientes'));

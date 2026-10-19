@@ -6,18 +6,23 @@ import '../widgets/player_bar.dart';
 import '../widgets/audio_output_panel.dart';
 import '../widgets/engine_status_panel.dart';
 import '../widgets/selected_zone_panel.dart';
+import '../widgets/assigned_playlist_panel.dart';
 import '../state/zone_preview_state.dart';
 import 'utrack_header.dart';
 import 'utrack_sidebar.dart';
 
-/// Presentation-only shell for the staged test interface.
+/// Shared shell with an explicitly injected production or preview state.
 class UtrackShell extends StatefulWidget {
   const UtrackShell({
     super.key,
     required this.status,
     required this.connected,
     required this.settings,
+    this.testMode = true,
+    this.state,
   });
+  final AudioViewState? state;
+  final bool testMode;
   final String status;
   final bool connected;
   final Widget settings;
@@ -26,10 +31,20 @@ class UtrackShell extends StatefulWidget {
 }
 
 class _UtrackShellState extends State<UtrackShell> {
-  final _zoneState = ZonePreviewState();
+  late final AudioViewState _zoneState;
+  @override
+  void initState() {
+    super.initState();
+    if (widget.state == null && !widget.testMode) {
+      throw StateError('Producción requiere un estado conectado al motor.');
+    }
+    _zoneState = widget.state ?? ZonePreviewState();
+    if (_zoneState.needsConfiguration) _selected = 4;
+  }
+
   @override
   void dispose() {
-    _zoneState.dispose();
+    if (widget.state == null) _zoneState.dispose();
     super.dispose();
   }
 
@@ -66,25 +81,35 @@ class _UtrackShellState extends State<UtrackShell> {
         ),
       );
 
-  Widget _home(double width) {
-    final plan = ZoneMap(state: _zoneState, showControls: false);
+  Widget _home(double width, double height) {
+    final plan = ZoneMap(
+      state: _zoneState,
+      showControls: false,
+      maxSceneWidth: width >= 1000
+          ? (height - 120).clamp(300, 580).toDouble()
+          : 580,
+    );
     final selected = SelectedZonePanel(state: _zoneState, compact: true);
     final devices = Column(
       children: [
-        AudioOutputPanel(state: _zoneState, compact: true),
+        AudioOutputPanel(
+          state: _zoneState,
+          compact: true,
+          onConfigure: () => _select(4),
+        ),
         const SizedBox(height: UiSpace.lg),
         _enginePanel(compact: true),
       ],
     );
-    if (width >= 1300) {
+    if (width >= 1000) {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(child: plan),
           const SizedBox(width: UiSpace.lg),
-          SizedBox(width: 312, child: selected),
+          SizedBox(width: width >= 1400 ? 350 : 280, child: selected),
           const SizedBox(width: UiSpace.lg),
-          SizedBox(width: 280, child: devices),
+          SizedBox(width: width >= 1400 ? 270 : 240, child: devices),
         ],
       );
     }
@@ -118,11 +143,13 @@ class _UtrackShellState extends State<UtrackShell> {
   Widget _enginePanel({bool compact = false}) => EngineStatusPanel(
     compact: compact,
     running: _zoneState.engineRunning,
+    simulated: _zoneState.isSimulated,
+    statusLabel: _zoneState.status,
     activeZones: _zoneState.activeZones,
     totalZones: _zoneState.zones.length,
     cpu: _zoneState.cpu,
     latencyMs: _zoneState.latencyMs,
-    onToggleEngine: _zoneState.toggleEngine,
+    onToggleEngine: _zoneState.canToggleEngine ? _zoneState.toggleEngine : null,
   );
 
   Widget _devices(double width) {
@@ -130,7 +157,12 @@ class _UtrackShellState extends State<UtrackShell> {
       return Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Expanded(child: AudioOutputPanel(state: _zoneState)),
+          Expanded(
+            child: AudioOutputPanel(
+              state: _zoneState,
+              onConfigure: () => _select(4),
+            ),
+          ),
           SizedBox(width: UiSpace.xl),
           Expanded(child: _enginePanel()),
         ],
@@ -138,7 +170,7 @@ class _UtrackShellState extends State<UtrackShell> {
     }
     return Column(
       children: [
-        AudioOutputPanel(state: _zoneState),
+        AudioOutputPanel(state: _zoneState, onConfigure: () => _select(4)),
         SizedBox(height: UiSpace.lg),
         _enginePanel(),
       ],
@@ -183,8 +215,10 @@ class _UtrackShellState extends State<UtrackShell> {
                         width: double.infinity,
                         color: UiColors.elevated,
                         padding: const EdgeInsets.all(UiSpace.sm),
-                        child: const Text(
-                          'MODO TEST · Vista de pruebas con datos simulados.',
+                        child: Text(
+                          widget.testMode
+                              ? 'MODO TEST · Datos simulados, sin audio real'
+                              : 'MOTOR LOCAL · Zonas reales y reproducción desde Desktop.',
                           style: UiType.caption,
                           textAlign: TextAlign.center,
                         ),
@@ -196,19 +230,79 @@ class _UtrackShellState extends State<UtrackShell> {
                         onSettings: () => _select(4),
                         onSearch: _search,
                       ),
+                      if (_zoneState.error.isNotEmpty)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: UiSpace.lg,
+                          ),
+                          child: Semantics(
+                            liveRegion: true,
+                            child: Text(
+                              _zoneState.error,
+                              style: UiType.body.copyWith(
+                                color: UiColors.error,
+                              ),
+                            ),
+                          ),
+                        ),
+                      if (!_zoneState.isSimulated && !_zoneState.busy)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: UiSpace.lg,
+                          ),
+                          child: Wrap(
+                            spacing: UiSpace.md,
+                            children: [
+                              FilledButton.icon(
+                                onPressed: _zoneState.canToggleEngine
+                                    ? _zoneState.toggleEngine
+                                    : null,
+                                icon: Icon(
+                                  _zoneState.engineRunning
+                                      ? Icons.stop
+                                      : Icons.play_arrow,
+                                ),
+                                label: Text(
+                                  _zoneState.engineRunning
+                                      ? 'Detener motor'
+                                      : 'Iniciar motor',
+                                ),
+                              ),
+                              IconButton(
+                                tooltip: 'Actualizar estado local',
+                                onPressed: _zoneState.refreshAction,
+                                icon: const Icon(Icons.refresh),
+                              ),
+                              TextButton.icon(
+                                onPressed: () => _select(4),
+                                icon: const Icon(Icons.settings),
+                                label: const Text(
+                                  'Configurar servidor y salida',
+                                ),
+                              ),
+                              if (!_zoneState.fresh && _zoneState.hasSelection)
+                                const Text(
+                                  'Último estado recibido · sin actualización',
+                                  style: UiType.caption,
+                                ),
+                            ],
+                          ),
+                        ),
                       const Divider(height: 1),
                       Expanded(
                         child: LayoutBuilder(
                           builder: (context, content) => SingleChildScrollView(
                             padding: const EdgeInsets.all(UiSpace.lg),
                             child: _selected == 0
-                                ? _home(content.maxWidth)
+                                ? _home(content.maxWidth, content.maxHeight)
                                 : _selected == 1
-                                ? _home(content.maxWidth)
+                                ? _home(content.maxWidth, content.maxHeight)
                                 : _selected == 3
                                 ? _devices(content.maxWidth)
                                 : _selected == 4
                                 ? widget.settings
+                                : _selected == 2 && !_zoneState.isSimulated
+                                ? AssignedPlaylistPanel(state: _zoneState)
                                 : _placeholder(
                                     shellLabels[_selected],
                                     'Sección pendiente de desarrollo en próximas etapas.',

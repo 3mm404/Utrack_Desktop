@@ -10,9 +10,49 @@ class AudioOutputPanel extends StatelessWidget {
     super.key,
     required this.state,
     this.compact = false,
+    this.onConfigure,
   });
+  final VoidCallback? onConfigure;
   final bool compact;
-  final ZonePreviewState state;
+  final AudioViewState state;
+  Widget _livePanel(BuildContext context) => SectionCard(
+    title: 'Salida de audio',
+    compact: compact,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        const _DeviceImage(compact: true),
+        const SizedBox(height: UiSpace.sm),
+        const Text('Ilustración de referencia', style: UiType.caption),
+        const SizedBox(height: UiSpace.md),
+        Text(state.device.name, style: UiType.title),
+        Text(state.device.backend, style: UiType.body),
+        _OutputDetail(label: 'Driver configurado', value: state.device.driver),
+        _OutputDetail(
+          label: 'Frecuencia',
+          value: state.device.sampleRate == null
+              ? 'No reportada'
+              : '${state.device.sampleRate} Hz',
+        ),
+        _OutputDetail(
+          label: 'Buffer',
+          value: state.device.bufferFrames == null
+              ? 'No reportado'
+              : '${state.device.bufferFrames} frames',
+        ),
+        _OutputDetail(
+          label: 'Modo configurado',
+          value: state.device.mode ?? 'No configurado',
+        ),
+        if (onConfigure != null)
+          OutlinedButton.icon(
+            onPressed: onConfigure,
+            icon: const Icon(Icons.settings),
+            label: const Text('Configurar salida'),
+          ),
+      ],
+    ),
+  );
 
   Widget _compactPanel(BuildContext context) => SectionCard(
     title: 'Salida de audio',
@@ -35,18 +75,20 @@ class AudioOutputPanel extends StatelessWidget {
           isExpanded: true,
           decoration: const InputDecoration(labelText: 'Salida simulada'),
           items: [
-            for (var i = 0; i < ZonePreviewState.devices.length; i++)
+            for (var i = 0; i < state.outputs.length; i++)
               DropdownMenuItem(
                 value: i,
                 child: Text(
-                  ZonePreviewState.devices[i].name,
+                  state.outputs[i].name,
                   overflow: TextOverflow.ellipsis,
                 ),
               ),
           ],
-          onChanged: (value) {
-            if (value != null) state.selectDevice(value);
-          },
+          onChanged: state.canControlZones
+              ? (value) {
+                  if (value != null) state.selectDevice(value);
+                }
+              : null,
         ),
       ],
     ),
@@ -54,7 +96,9 @@ class AudioOutputPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: state,
-    builder: (context, _) => compact
+    builder: (context, _) => !state.isSimulated
+        ? _livePanel(context)
+        : compact
         ? _compactPanel(context)
         : SectionCard(
             title: 'Salida de audio',
@@ -102,11 +146,11 @@ class AudioOutputPanel extends StatelessWidget {
                     labelText: 'Salida simulada',
                   ),
                   items: [
-                    for (var i = 0; i < ZonePreviewState.devices.length; i++)
+                    for (var i = 0; i < state.outputs.length; i++)
                       DropdownMenuItem(
                         value: i,
                         child: Text(
-                          ZonePreviewState.devices[i].name,
+                          state.outputs[i].name,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),

@@ -1,3 +1,6 @@
+import 'package:utrack_v1/controllers/engine_controller.dart';
+import 'package:utrack_v1/views/state/engine_view_state.dart';
+import 'fake_engine_bridge.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -31,6 +34,12 @@ void main() {
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.resetPhysicalSize);
       addTearDown(tester.view.resetDevicePixelRatio);
+      final bridge = FakeEngineBridge();
+      final controller = EngineController(bridge);
+      await controller.initialize();
+      await controller.start();
+      bridge.connected();
+      final engineState = EngineViewState(controller);
       final key = GlobalKey();
       await tester.pumpWidget(
         RepaintBoundary(
@@ -38,10 +47,12 @@ void main() {
           child: MaterialApp(
             debugShowCheckedModeBanner: false,
             theme: UiTheme.dark,
-            home: const UtrackShell(
-              status: 'Motor listo · simulado',
-              connected: true,
-              settings: SizedBox(),
+            home: UtrackShell(
+              state: engineState,
+              testMode: false,
+              status: 'Sin conexión',
+              connected: false,
+              settings: const SizedBox(),
             ),
           ),
         ),
@@ -49,7 +60,7 @@ void main() {
       await tester.runAsync(() async {
         final context = key.currentContext!;
         await precacheImage(
-          const AssetImage('assets/images/zone_floor_plan.png'),
+          const AssetImage('assets/images/zone_floor_plan_v2.png'),
           context,
         );
         await precacheImage(
@@ -71,6 +82,8 @@ void main() {
         image.dispose();
       });
       await tester.pumpWidget(const SizedBox());
+      engineState.dispose();
+      controller.dispose();
     });
   }
   testWidgets('Texto ampliado y movimiento reducido sin desbordamientos', (
@@ -80,6 +93,12 @@ void main() {
     tester.view.devicePixelRatio = 1;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+    final bridge = FakeEngineBridge();
+    final controller = EngineController(bridge);
+    await controller.initialize();
+    await controller.start();
+    bridge.connected();
+    final engineState = EngineViewState(controller);
     await tester.pumpWidget(
       MaterialApp(
         theme: UiTheme.dark,
@@ -90,7 +109,9 @@ void main() {
           ),
           child: child!,
         ),
-        home: const UtrackShell(
+        home: UtrackShell(
+          state: engineState,
+          testMode: false,
           status: 'Motor listo · simulado',
           connected: true,
           settings: SizedBox(),
@@ -100,5 +121,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());
+    engineState.dispose();
+    controller.dispose();
   });
 }

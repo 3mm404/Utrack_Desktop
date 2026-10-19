@@ -14,7 +14,175 @@ class SelectedZonePanel extends StatelessWidget {
     this.compact = false,
   });
   final bool compact;
-  final ZonePreviewState state;
+  final AudioViewState state;
+  Widget _compactPanel(BuildContext context) {
+    final zone = state.selected;
+    Widget detail(IconData icon, String label, Widget value) => Container(
+      margin: const EdgeInsets.only(top: UiSpace.sm),
+      padding: const EdgeInsets.symmetric(
+        horizontal: UiSpace.md,
+        vertical: UiSpace.md,
+      ),
+      decoration: const BoxDecoration(
+        color: UiColors.input,
+        borderRadius: UiRadii.card,
+        border: Border.fromBorderSide(UiEffects.border),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, size: 22, color: UiColors.muted),
+          const SizedBox(width: UiSpace.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(label, style: UiType.body),
+                const SizedBox(height: UiSpace.xs),
+                value,
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+    return SectionCard(
+      title: 'Zona seleccionada',
+      compact: true,
+      trailing: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            '${state.selectedIndex + 1}/${state.zones.length}',
+            style: UiType.caption,
+          ),
+          UiIconControl(
+            icon: Icons.chevron_left,
+            label: 'Zona anterior',
+            onPressed: () => state.select(
+              (state.selectedIndex - 1 + state.zones.length) %
+                  state.zones.length,
+            ),
+          ),
+          UiIconControl(
+            icon: Icons.chevron_right,
+            label: 'Zona siguiente',
+            onPressed: () =>
+                state.select((state.selectedIndex + 1) % state.zones.length),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(UiSpace.md),
+            decoration: const BoxDecoration(
+              borderRadius: UiRadii.card,
+              gradient: LinearGradient(
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+                colors: [Color(0xff202429), Color(0xff0d1115)],
+              ),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    const Icon(
+                      Icons.speaker_group_outlined,
+                      size: 28,
+                      color: UiColors.accent,
+                    ),
+                    const SizedBox(width: UiSpace.md),
+                    Expanded(child: Text(zone.name, style: UiType.title)),
+                    UiIconControl(
+                      icon: zone.active ? Icons.volume_up : Icons.volume_off,
+                      label: state.isSimulated
+                          ? 'Alternar estado de zona (simulado)'
+                          : 'Zona administrada desde el servidor',
+                      onPressed: state.canControlZones && state.engineRunning
+                          ? () => state.toggle(state.selectedIndex)
+                          : null,
+                    ),
+                  ],
+                ),
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: StatusIndicator(
+                    label: !state.isSimulated
+                        ? (state.fresh
+                              ? (zone.observedState ?? 'No reportado')
+                              : 'Sin actualización')
+                        : (state.isActive(state.selectedIndex)
+                              ? 'Activa · simulada'
+                              : 'Inactiva · simulada'),
+                    status: state.isActive(state.selectedIndex)
+                        ? UiStatus.operational
+                        : UiStatus.inactive,
+                  ),
+                ),
+                const SizedBox(height: UiSpace.lg),
+                Center(
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: VolumeKnob(
+                      value: zone.volume,
+                      diameter: 180,
+                      showValue: false,
+                      onChanged: state.canControlZones
+                          ? (value) =>
+                                state.setVolume(state.selectedIndex, value)
+                          : null,
+                    ),
+                  ),
+                ),
+                const Text('Volumen', style: UiType.caption),
+                Text('${zone.volume.round()}%', style: UiType.heading),
+              ],
+            ),
+          ),
+          detail(
+            Icons.wb_sunny_outlined,
+            'Fuente',
+            Text(
+              'Playlist · ${zone.source}',
+              style: UiType.caption,
+              maxLines: 2,
+            ),
+          ),
+          detail(
+            Icons.tune,
+            'Canales',
+            !state.canControlZones
+                ? Text(zone.channels, style: UiType.caption)
+                : DropdownButton<String>(
+                    value: zone.channels,
+                    isDense: true,
+                    isExpanded: true,
+                    underline: const SizedBox(),
+                    style: Theme.of(context).textTheme.bodySmall,
+                    items: const [
+                      DropdownMenuItem(value: 'Mono', child: Text('1 (Mono)')),
+                      DropdownMenuItem(
+                        value: 'Estéreo',
+                        child: Text('2 (Estéreo)'),
+                      ),
+                    ],
+                    onChanged: (value) {
+                      if (value != null) state.setChannels(value);
+                    },
+                  ),
+          ),
+          detail(
+            Icons.multitrack_audio,
+            'Canción actual',
+            Text(zone.song, style: UiType.caption, maxLines: 2),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _detail({required String label, required Widget control}) => compact
       ? Padding(
           padding: const EdgeInsets.symmetric(vertical: UiSpace.sm),
@@ -32,6 +200,13 @@ class SelectedZonePanel extends StatelessWidget {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: state,
     builder: (context, _) {
+      if (!state.hasSelection) {
+        return const SectionCard(
+          title: 'Zona seleccionada',
+          child: Text('Sin zonas recibidas del motor.', style: UiType.body),
+        );
+      }
+      if (compact || !state.isSimulated) return _compactPanel(context);
       final zone = state.selected;
       return SectionCard(
         title: 'Zona seleccionada',
@@ -94,8 +269,9 @@ class SelectedZonePanel extends StatelessWidget {
               child: VolumeKnob(
                 value: zone.volume,
                 diameter: compact ? 168 : 208,
-                onChanged: (value) =>
-                    state.setVolume(state.selectedIndex, value),
+                onChanged: state.canControlZones
+                    ? (value) => state.setVolume(state.selectedIndex, value)
+                    : null,
               ),
             ),
             const Center(

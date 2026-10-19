@@ -1,106 +1,60 @@
 # Arquitectura y responsabilidades
 
-Documento de referencia del código inspeccionado el 19 de octubre de 2026. Distingue **implementado**, **simulado** y **propuesto**. No certifica que el producto esté listo para producción.
+> Actualización 19/10/2026: motor 0.8.1 conecta reproducción y canciones asignadas con Desktop. Las descripciones anteriores de reproducción solo desde servidor quedan sustituidas por [Conexiones Desktop y APIs pendientes](CONEXIONES_DESKTOP_Y_APIS_PENDIENTES.md). Volumen, seek y asignaciones siguen pendientes.
 
-## 1. Mapa del repositorio
+## Estructura
 
-```text
-lib/
-  main.dart                         composición inicial y tema
-  controllers/
-    engine_controller.dart          estado y operaciones del flujo anterior
-  models/
-    engine_settings.dart            configuración y validación existente
-    engine_status.dart              lectura de estados de zona y actividad
-  services/
-    engine_bridge.dart              interfaz existente de acceso al motor
-    process_engine_bridge.dart      proceso local y protocolo JSON
-    demo_engine_bridge.dart         simulación del protocolo anterior
-    engine_bridge_factory.dart      elección test/plataforma
-    platform_engine_bridge*.dart    importación condicional web/escritorio
-  views/
-    engine_dashboard.dart           selecciona vista test o vista anterior
-    overview_view.dart              resumen anterior
-    configuration_view.dart         formulario anterior
-    activity_view.dart              actividad anterior
-    design/                         colores, tipografía, espaciados y tema
-    layout/                         shell, sidebar y header nuevos
-    widgets/                        plano, paneles, perilla y reproductor
-    state/zone_preview_state.dart   simulación de presentación compartida
-    contracts/audio_ui_port.dart    frontera tipada propuesta; sin adaptador
-assets/images/                      plano y dispositivo generados
-windows/                            runner, CMake y empaquetado Windows
-macos/                              runner generado; preparación nativa pendiente
-web/                                bootstrap, manifest e iconos
-build-windows.ps1                    compila Go y después Flutter Windows
-pubspec.yaml / pubspec.lock          versión, assets y dependencias
-DESARROLLO_UI_POR_ETAPAS.md           bitácora de trabajo
-```
+| Ruta | Responsabilidad |
+| --- | --- |
+| `lib/main.dart` | Composición, bandera de compilación y tema |
+| `lib/controllers/engine_controller.dart` | Inspección, configuración, proceso, eventos, conexión y frescura |
+| `lib/models/` | Configuración y reportes del motor |
+| `lib/services/engine_bridge.dart` | Frontera de operaciones locales |
+| `lib/services/process_engine_bridge.dart` | Proceso nativo, stdin y eventos JSON |
+| `lib/services/engine_bridge_factory.dart` | Selección explícita test/plataforma |
+| `lib/services/demo_engine_bridge.dart` | Simulación del protocolo para test |
+| `lib/views/engine_dashboard.dart` | Composición de la vista, controlador y adaptador |
+| `lib/views/state/audio_view_state.dart` | Datos y capacidades comunes de presentación |
+| `lib/views/state/engine_view_state.dart` | Mapeo de datos reales a la interfaz |
+| `lib/views/state/zone_preview_state.dart` | Estado de demostración aislado |
+| `lib/views/layout/` | Shell, navegación y cabecera |
+| `lib/views/widgets/` | Plano, zona seleccionada, salida, métricas y reproducción |
+| `lib/views/design/` | Tema, colores, tipografía y espaciados |
+| `lib/views/configuration_view.dart` | Formulario real de servidor, token y salida |
+| `lib/views/activity_view.dart` | Actividad del proceso |
+| `lib/views/contracts/audio_ui_port.dart` | Propuesta de contrato futuro; no implementado |
+| `assets/images/` | Ilustraciones de referencia |
+| `test/` | Estado, controlador, UI, capturas y prueba de proceso opt-in |
+| `windows/`, `macos/`, `web/` | Runners y empaquetado por plataforma |
 
-`build/`, `.dart_tool/` y los ejecutables generados no son fuentes de la aplicación. No editar registradores de plugins generados para agregar funcionalidad manualmente.
-
-## 2. Las dos rutas que existen hoy
+## Flujo de datos
 
 ```mermaid
-flowchart TD
-  A[main.dart] --> F[createEngineBridge]
-  F -->|test o web| D[DemoEngineBridge]
-  F -->|desktop sin test| P[ProcessEngineBridge]
-  D --> C[EngineController]
-  P --> C
-  C --> V[EngineDashboard]
-  V -->|sin test| L[Vistas anteriores]
-  V -->|test| S[UtrackShell]
-  S --> Z[ZonePreviewState]
-  Z --> W[Plano, panel, reproductor y métricas simuladas]
-  C --> Q[Configuración y actividad anteriores dentro de Ajustes]
+flowchart LR
+  P[ProcessEngineBridge] --> C[EngineController]
+  C --> E[EngineViewState]
+  E --> A[AudioViewState]
+  T[ZonePreviewState: solo test] --> A
+  A --> W[Shell y widgets]
+  W -->|Configurar / iniciar / detener| C
 ```
 
-La UI nueva no consume los estados del proceso real: su `ZonePreviewState` conserva sus propios datos. En la vista test, Ajustes aún utiliza el controlador anterior con su bridge simulado. Esta separación debe resolverse antes de conectar producción. El contrato de Etapa 10 no modifica este flujo.
+Producción muestra únicamente las zonas reportadas. Una selección cambia la vista, no la configuración. Volumen y reproducción son observaciones de solo lectura mientras el protocolo desktop no admita comandos. Los campos ausentes permanecen desconocidos.
 
-La bandera de compilación `UTRACK_TEST=true` activa el modo test en escritorio; `kIsWeb` lo activa siempre en navegador. El parámetro `MainApp.testMode` es útil para pruebas de widgets, pero no cambia por sí solo el bridge elegido por `main()`.
+## Propiedad y cierre
 
-## 3. Quién es responsable de qué
+`EngineDashboard` posee el controlador recibido y el adaptador real. Libera primero el adaptador, que retira su listener, y después el controlador, que cancela su temporizador y cierra el bridge. El shell no libera un estado inyectado. En test crea y libera su propio `ZonePreviewState`.
 
-| Capa/equipo | Responsabilidad | No debe asumir |
-| --- | --- | --- |
-| Producto/operación | Zonas, reglas de uso, roles, comportamiento ante fallos, plataformas y canales de distribución | Que aprobar una captura equivale a validar audio |
-| Flutter UI | Presentación, accesibilidad, selección local, estados de carga/error, intención del usuario | Drivers, reproducción, credenciales o autorización efectiva |
-| Estado/presentador futuro | Convertir snapshots a valores de pantalla; enviar comandos tipados; capacidades, pendientes y errores | Fabricar confirmaciones o datos que el motor no reporta |
-| Adaptador de integración futuro | Traducir protocolo, IDs, unidades, resultados, orden y versiones | Importar widgets o depender de coordenadas del plano |
-| Motor local | Reproducción, cola, sincronización, dispositivos, canales, métricas y recuperación local | Que el servidor remoto tiene acceso a la salida física |
-| Backend | Identidad del equipo, autorización, catálogo, asignaciones y configuración remota | Que el estado deseado ya fue aplicado por el motor |
-| Distribución/operaciones técnicas | Builds, firmas, instaladores, actualización, rollback, monitoreo | Sobrescribir una instalación mientras el motor escribe datos |
-| QA | Regresión UI, protocolo, audio físico, offline, plataformas y actualizaciones | Que pasar pruebas simuladas valida drivers reales |
+El cierre solicita terminar el proceso hijo. No equivale a instalar un servicio que siga reproduciendo después de cerrar la UI. No compartir el controlador con otro propietario sin cambiar explícitamente este contrato de vida.
 
-Son roles sugeridos: una persona puede cubrir varios, pero cada entrega debe tener un responsable identificado.
+## Responsabilidades futuras
 
-## 4. Estado y propiedad de recursos
+- Flutter: navegación, representación de estados, accesibilidad, capacidades y errores; no inventar datos ni confirmaciones.
+- Motor: audio, drivers, routing, caché, credenciales, protocolo y reportes medidos.
+- Backend: autoridad de zonas/playlists/comandos, autenticación y políticas de acceso.
+- QA: comparar UI con eventos reales, probar audio físico, reconexión, cierre, DPI y dispositivos.
+- Release: fijar versiones app/motor/protocolo, empaquetar todos los recursos, firma, instalación y recuperación.
 
-`UtrackShell` crea y libera `ZonePreviewState`. Los widgets reciben esa instancia y escuchan sus cambios. Las variantes independientes de `ZoneMap` y `PlayerBar` crean su propio estado solo cuando no se les inyecta uno. Un componente que recibe una instancia compartida no debe liberarla.
+La configuración del motor no debe guardarse como preferencias visuales ni duplicarse en Dart. Mantener tokens fuera de snapshots, documentación y logs de pantalla. La imagen del plano no define habitaciones ni posiciones físicas: estas requerirán configuración persistida propia.
 
-El estado simulado mantiene selección, volumen, pista, progreso, canales y modos por zona; la salida y el motor son globales. Un temporizador avanza la simulación mientras haya reproducción y se cancela al pausar todo o cerrar. Los datos se pierden al destruir el shell. CPU y latencia se calculan con reglas de demostración, no mediante medición.
-
-En el flujo anterior, `EngineDashboard` posee el ciclo de vida del controlador que recibe; cierre/dispose detienen el bridge. Antes de compartir ese controlador entre pantallas hay que revisar esa propiedad para evitar cierres dobles o inesperados.
-
-## 5. Convenciones para continuar
-
-- Mantener colores, tipografía, radios y espaciados en `views/design`.
-- Reutilizar componentes de `views/widgets`; no convertir paneles completos en imágenes.
-- Mantener datos simulados claramente identificados y sin credenciales reales.
-- Usar IDs estables al integrar: los índices de listas y nombres de zona del preview no son identificadores de producción.
-- Separar estado observado, estado deseado y selección visual. Habilitada, conectada, reproduciendo y audible no significan lo mismo.
-- Reservar verde a estados operativos confirmados. Información desconocida debe presentarse como desconocida, no como cero o éxito.
-- Permitir redimensionado y desplazamiento, foco visible, teclado, texto ampliado y movimiento reducido.
-- Conservar importaciones condicionales: ningún widget o contrato compartido debe importar `dart:io`.
-- No añadir un paquete de estado, red, audio o actualizaciones sin justificarlo y revisar las plataformas.
-
-## 6. Recursos y límites visuales
-
-`zone_floor_plan.png` y `audio_interface.png` son ilustraciones generadas; sus prompts están en el registro de etapas. No representan una instalación ni hardware detectados. La carátula del reproductor está construida con widgets Flutter. Coordenadas normalizadas del plano pertenecen a presentación y deberán poder configurarse por instalación si se admiten planos propios.
-
-La revisión visual incluye cinco tamaños, texto al 150% y movimiento reducido. Hay capturas en `build/previews/`, regenerables mediante el harness. Esto no reemplaza QA en pantallas físicas, lectores de pantalla, distintos DPI, navegadores o un Mac.
-
-## 7. Fronteras pendientes
-
-Biblioteca es un placeholder; falta catálogo, búsqueda de canciones, playlists y sus permisos. El buscador actual solo navega secciones. No hay persistencia de la UI nueva, telemetría de producción, actualizador o adaptador de `AudioUiPort`. La ubicación real de credenciales, política offline y compatibilidad de motores debe acordarse con los equipos respectivos antes de implementarse.
+Consultar [Integración](INTEGRACION.md), [Producción](PRODUCCION.md) y [Mantenimiento](MANTENIMIENTO.md) antes de extender capacidades o distribuir una versión.

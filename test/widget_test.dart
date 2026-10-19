@@ -34,7 +34,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.textContaining('MODO TEST'), findsOneWidget);
     expect(find.byType(NavigationBar), findsOneWidget);
-    await tester.tap(find.byIcon(Icons.tune).last);
+    await tester.tap(find.byTooltip('Abrir ajustes'));
     await tester.pumpAndSettle();
     expect(find.text('Conecta tu equipo'), findsOneWidget);
     expect(tester.takeException(), isNull);

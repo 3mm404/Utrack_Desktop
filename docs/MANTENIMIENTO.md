@@ -1,5 +1,7 @@
 # Mantenimiento, compilación y actualizaciones
 
+> Producción usa EngineViewState con datos reales. Consultar PRODUCCION.md para capacidades y campos pendientes. El simulador requiere UTRACK_TEST=true.
+
 Esta guía describe tareas futuras y comandos de trabajo; no instala un actualizador ni publica versiones. Validar el entorno y la compatibilidad antes de cada entrega.
 
 ## 1. Entorno reproducible
@@ -23,7 +25,7 @@ En esta máquina Flutter se localizó en `C:/Develop/SDK-FLUTTER/flutter/bin`; s
 | Validación | Qué cubre | Qué no demuestra |
 | --- | --- | --- |
 | Análisis Dart | Tipos, imports y reglas de estilo | Audio o rendimiento real |
-| `flutter test` | Estado simulado, widgets y flujo anterior con fakes | Drivers físicos ni todo el protocolo real |
+| `flutter test` | Adaptador real, ausencia de demos, widgets, controlador y preview con fakes | Drivers físicos ni todo el protocolo real |
 | Harness visual | Cinco tamaños, capturas, texto ampliado y movimiento reducido | Lectores de pantalla reales o fidelidad en cada SO |
 | Integración de proceso opt-in | Proceso local existente y ciclo de vida | Reproducción correcta en todas las interfaces |
 | QA físico pendiente | Audio, routing, recuperación, carga y latencia medidos | Debe diseñarse y ejecutarse por plataforma |
@@ -60,14 +62,14 @@ Publicar el contenido completo de `build/web` en un hosting estático elegido po
 
 Se requieren herramientas nativas de Visual Studio para desarrollo desktop, además de Flutter. Revisar la [configuración oficial de Windows](https://docs.flutter.dev/platform-integration/windows/setup).
 
-`windows/CMakeLists.txt` copia obligatoriamente `windows/engine/engine.exe`; el binario no está presente en el árbol inspeccionado y está ignorado por Git. Esto también afecta un build Flutter con modo test: la bandera cambia la ejecución, no elimina esa regla CMake.
+`windows/CMakeLists.txt` copia obligatoriamente `windows/engine/engine.exe`; el binario está preparado localmente y está ignorado por Git. Esto también afecta un build Flutter con modo test: la bandera cambia la ejecución, no elimina esa regla CMake.
 
-`build-windows.ps1` compila el motor desde el repositorio hermano `../music-engine` mediante Go y luego llama `flutter build windows --release`. **No se ejecutó ni modificó aquí:** afecta al motor y no agrega la bandera de UI nueva. Para preparar producción habrá que acordar versiones y separar la preparación del motor del empaquetado de la app.
+`build-windows.ps1` compila el motor desde el repositorio hermano `../music-engine` mediante Go y luego llama `flutter build windows --release`. No se ejecutó ni modificó ese script. Para esta entrega se reutiliza el motor 0.8.0 existente (protocolo 1), sin recompilar Go. Registrar y validar la versión al sustituirlo.
 
 Con un binario compatible ya preparado por el responsable del motor:
 
 ```sh
-flutter build windows --release --dart-define=UTRACK_TEST=true
+flutter build windows --release --dart-define=UTRACK_TEST=false
 ```
 
 La salida habitual está en `build/windows/x64/runner/Release`. Distribuir el directorio completo, no solo el ejecutable: motor, DLL y assets son parte del paquete. Falta elegir instalador, identidad y firma. La [guía de distribución Windows](https://docs.flutter.dev/deployment/windows) describe las opciones de empaquetado.

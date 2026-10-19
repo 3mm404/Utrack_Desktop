@@ -1,72 +1,47 @@
 import 'dart:async';
 import 'package:flutter/widgets.dart';
 import '../design/ui_tokens.dart';
-
-class PreviewTrack {
-  const PreviewTrack(this.title, this.artist, this.seconds, this.color);
-  final String title, artist;
-  final int seconds;
-  final Color color;
-}
-
-class PreviewZone {
-  PreviewZone(
-    this.name,
-    this.position,
-    this.volume,
-    this.active,
-    this.source,
-    this.trackIndex,
-    this.channels,
-  );
-  final String name, source;
-  final Offset position;
-  double volume;
-  bool active;
-  String channels;
-  int trackIndex;
-  double progress = 0, previousVolume = 65;
-  bool playing = false, shuffle = false, repeat = false;
-  String get song => '${ZonePreviewState.tracks[trackIndex].title} · Demo';
-}
-
-class PreviewDevice {
-  const PreviewDevice(this.name, this.driver, this.backend, this.latencyMs);
-  final String name, driver, backend;
-  final double latencyMs;
-}
+import 'audio_view_state.dart';
+export 'audio_view_state.dart';
 
 /// In-memory presentation simulation. No engine, system audio, or persistence.
-class ZonePreviewState extends ChangeNotifier {
+class ZonePreviewState extends AudioViewState {
   ZonePreviewState({this.autoAdvance = true});
   final bool autoAdvance;
+  @override
+  bool get isSimulated => true;
+  @override
+  bool get fresh => true;
+  @override
+  List<OutputViewData> get outputs => devices;
   Timer? _timer;
   static const tracks = [
-    PreviewTrack(
+    TrackViewData(
       'Hotel Valhalla',
       'UTRACK · Ambient Sessions',
       378,
       UiColors.accent,
     ),
-    PreviewTrack('Brisa', 'UTRACK · Terrace Sessions', 245, UiColors.muted),
-    PreviewTrack('Noche', 'UTRACK · Dinner Jazz', 302, UiColors.warning),
+    TrackViewData('Brisa', 'UTRACK · Terrace Sessions', 245, UiColors.muted),
+    TrackViewData('Noche', 'UTRACK · Dinner Jazz', 302, UiColors.warning),
   ];
   static const devices = [
-    PreviewDevice(
+    OutputViewData(
       'Interfaz USB · Studio 2',
       'Studio USB ASIO (Windows)',
       'ASIO',
       12,
     ),
-    PreviewDevice(
+    OutputViewData(
       'Salida del sistema · Demo',
       'Dispositivo virtual de prueba',
       'Sistema',
       24,
     ),
   ];
+  @override
   final zones = [
-    PreviewZone(
+    ZoneViewData(
       'Terraza',
       const Offset(.30, .30),
       72,
@@ -75,7 +50,7 @@ class ZonePreviewState extends ChangeNotifier {
       1,
       'Estéreo',
     ),
-    PreviewZone(
+    ZoneViewData(
       'Cocina',
       const Offset(.68, .30),
       48,
@@ -84,7 +59,7 @@ class ZonePreviewState extends ChangeNotifier {
       0,
       'Mono',
     ),
-    PreviewZone(
+    ZoneViewData(
       'Sala',
       const Offset(.32, .65),
       65,
@@ -93,7 +68,7 @@ class ZonePreviewState extends ChangeNotifier {
       0,
       'Estéreo',
     )..progress = 84,
-    PreviewZone(
+    ZoneViewData(
       'Comedor',
       const Offset(.67, .64),
       62,
@@ -104,34 +79,54 @@ class ZonePreviewState extends ChangeNotifier {
     ),
   ];
   int _selected = 2, _deviceIndex = 0;
+  @override
   bool engineRunning = true;
+  @override
   int get selectedIndex => _selected;
+  @override
   int get deviceIndex => _deviceIndex;
-  PreviewZone get selected => zones[_selected];
-  PreviewTrack get track => tracks[selected.trackIndex];
-  PreviewDevice get device => devices[_deviceIndex];
+  @override
+  ZoneViewData get selected {
+    final zone = zones[_selected];
+    zone.track = tracks[zone.trackIndex];
+    return zone;
+  }
+
+  @override
+  TrackViewData get track => tracks[selected.trackIndex];
+  @override
+  OutputViewData get device => devices[_deviceIndex];
+  @override
   bool get connected => engineRunning;
+  @override
   String get status =>
       engineRunning ? 'Motor listo · simulado' : 'Motor detenido · simulado';
+  @override
   bool isActive(int index) => engineRunning && zones[index].active;
+  @override
   int get activeZones =>
       engineRunning ? zones.where((zone) => zone.active).length : 0;
+  @override
   double get cpu =>
       engineRunning ? 4 + zones.where((zone) => zone.playing).length * 2.0 : 0;
-  double get latencyMs => engineRunning ? device.latencyMs : 0;
+  @override
+  double get latencyMs => engineRunning ? device.latencyMs! : 0;
 
+  @override
   void select(int index) {
     if (index < 0 || index >= zones.length || index == _selected) return;
     _selected = index;
     notifyListeners();
   }
 
+  @override
   void setVolume(int index, double value) {
     zones[index].volume = value.clamp(0, 100).toDouble();
     _selected = index;
     notifyListeners();
   }
 
+  @override
   void toggle(int index) {
     if (!engineRunning) return;
     final zone = zones[index];
@@ -142,12 +137,14 @@ class ZonePreviewState extends ChangeNotifier {
     notifyListeners();
   }
 
+  @override
   void setChannels(String value) {
     if (!['Mono', 'Estéreo'].contains(value)) return;
     selected.channels = value;
     notifyListeners();
   }
 
+  @override
   void togglePlayback() {
     if (!engineRunning) return;
     selected.playing = !selected.playing;
@@ -159,11 +156,13 @@ class ZonePreviewState extends ChangeNotifier {
     notifyListeners();
   }
 
+  @override
   void seek(double seconds) {
     selected.progress = seconds.clamp(0, track.seconds).toDouble();
     notifyListeners();
   }
 
+  @override
   void skip(int direction) {
     final step = selected.shuffle ? direction * 2 : direction;
     selected.trackIndex = (selected.trackIndex + step) % tracks.length;
@@ -171,16 +170,19 @@ class ZonePreviewState extends ChangeNotifier {
     notifyListeners();
   }
 
+  @override
   void toggleShuffle() {
     selected.shuffle = !selected.shuffle;
     notifyListeners();
   }
 
+  @override
   void toggleRepeat() {
     selected.repeat = !selected.repeat;
     notifyListeners();
   }
 
+  @override
   void toggleMute() {
     if (selected.volume > 0) {
       selected.previousVolume = selected.volume;
@@ -191,6 +193,7 @@ class ZonePreviewState extends ChangeNotifier {
     notifyListeners();
   }
 
+  @override
   void selectDevice(int index) {
     if (index < 0 || index >= devices.length || index == _deviceIndex) return;
     _deviceIndex = index;
@@ -201,6 +204,7 @@ class ZonePreviewState extends ChangeNotifier {
     notifyListeners();
   }
 
+  @override
   void toggleEngine() {
     engineRunning = !engineRunning;
     if (!engineRunning) {

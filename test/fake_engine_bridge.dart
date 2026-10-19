@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:utrack_v1/models/engine_settings.dart';
 import 'package:utrack_v1/services/engine_bridge.dart';
 
-class FakeEngineBridge implements EngineBridge {
+class FakeEngineBridge implements EngineBridge, PlaybackEngineBridge {
   final stream = StreamController<Map<String, dynamic>>.broadcast(sync: true);
   EngineSettings settings = const EngineSettings(
     server: 'https://example.test',
@@ -11,12 +11,39 @@ class FakeEngineBridge implements EngineBridge {
   int starts = 0, stops = 0;
   String? savedToken;
   Object? failure;
+  bool playbackEnabled = false;
+  final List<Map<String, dynamic>> playbackRequests = [];
+  @override
+  Future<void> sendPlayback(Map<String, dynamic> request) async {
+    if (failure != null) throw failure!;
+    playbackRequests.add(request);
+  }
+
+  void playbackResult(String outcome, {String? message}) {
+    stream.add({
+      'type': 'command_result',
+      'request_id': playbackRequests.last['request_id'],
+      'result': {
+        'outcome': outcome,
+        if (message != null) 'error': {'message': message},
+      },
+    });
+  }
 
   @override
   Stream<Map<String, dynamic>> get events => stream.stream;
   @override
   Future<Map<String, dynamic>> inspect() async => {
     'protocol': 1,
+    if (playbackEnabled)
+      'capabilities': [
+        'play',
+        'pause',
+        'resume',
+        'next',
+        'previous',
+        'playlist_read',
+      ],
     'version': '0.8.0',
     'configured': configured,
     'running': externalRunning,
@@ -49,7 +76,7 @@ class FakeEngineBridge implements EngineBridge {
     await stream.close();
   }
 
-  void connected() {
+  void connected({String state = 'playing'}) {
     stream.add({'type': 'connection', 'channel': 'sync', 'connected': true});
     stream.add({
       'type': 'connection',
@@ -63,7 +90,7 @@ class FakeEngineBridge implements EngineBridge {
         'zones': [
           {
             'zone_id': '1',
-            'state': 'playing',
+            'state': state,
             'volume': 60,
             'song_id': '5',
             'channel_mode': 'stereo',
@@ -74,7 +101,12 @@ class FakeEngineBridge implements EngineBridge {
         ],
       },
       'zones': [
-        {'zone_id': '1', 'name': 'Terraza', 'playlist': 'Ambient'},
+        {
+          'zone_id': '1',
+          'name': 'Terraza',
+          'playlist': 'Ambient',
+          if (playbackEnabled) 'songs': ['5', '6'],
+        },
       ],
     });
   }

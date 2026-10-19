@@ -31,6 +31,7 @@ void main() {
         );
         final info = await bridge.inspect();
         expect(info['configured'], isTrue);
+        expect(info['capabilities'], contains('pause'));
         expect(info.toString(), isNot(contains('test-only-credential')));
         expect(info.toString(), isNot(contains('credential_dpapi')));
         await bridge.configure(

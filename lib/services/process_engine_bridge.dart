@@ -5,7 +5,7 @@ import 'dart:io';
 import '../models/engine_settings.dart';
 import 'engine_bridge.dart';
 
-class ProcessEngineBridge implements EngineBridge {
+class ProcessEngineBridge implements EngineBridge, PlaybackEngineBridge {
   ProcessEngineBridge({String? executable, this.environment})
     : executable =
           executable ??
@@ -15,6 +15,15 @@ class ProcessEngineBridge implements EngineBridge {
   final Map<String, String>? environment;
   final _events = StreamController<Map<String, dynamic>>.broadcast();
   Process? _process;
+
+  @override
+  Future<void> sendPlayback(Map<String, dynamic> request) async {
+    final child = _process;
+    if (child == null) throw StateError('El motor no está iniciado.');
+    child.stdin.writeln(jsonEncode(request));
+    await child.stdin.flush();
+  }
+
   Future<void>? _completion;
 
   @override
@@ -89,7 +98,7 @@ class ProcessEngineBridge implements EngineBridge {
         .forEach((line) {
           try {
             _emit(jsonDecode(line) as Map<String, dynamic>);
-          } on FormatException {
+          } on Object {
             _emit({
               'type': 'log',
               'message': 'Respuesta del motor no reconocida.',
@@ -136,7 +145,10 @@ class ProcessEngineBridge implements EngineBridge {
 
   @override
   Future<void> dispose() async {
-    await stop();
-    await _events.close();
+    try {
+      await stop();
+    } finally {
+      await _events.close();
+    }
   }
 }

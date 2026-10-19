@@ -1,16 +1,16 @@
 import 'package:flutter/material.dart';
 
 abstract final class UiColors {
-  static const background = Color(0xff090c10);
-  static const surface = Color(0xff14171b);
-  static const elevated = Color(0xff1c2025);
-  static const input = Color(0xff101317);
-  static const border = Color(0xff34383e);
+  static const background = Color(0xff070a0d);
+  static const surface = Color(0xff0c1014);
+  static const elevated = Color(0xff181e25);
+  static const input = Color(0xff090d12);
+  static const border = Color(0xff2b333d);
   static const text = Color(0xfff0eeeb);
   static const muted = Color(0xffabb0b8);
-  static const accent = Color(0xffd8b895);
+  static const accent = Color(0xffdfc1a0);
   static const onAccent = Color(0xff211a13);
-  static const operational = Color(0xff70c39c);
+  static const operational = Color(0xff68e4c3);
   static const warning = Color(0xffe1b870);
   static const error = Color(0xffef9c98);
 }
