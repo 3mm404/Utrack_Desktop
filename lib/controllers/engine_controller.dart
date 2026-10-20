@@ -4,6 +4,8 @@ import 'package:flutter/foundation.dart';
 import '../models/engine_settings.dart';
 import '../models/engine_status.dart';
 import '../services/engine_bridge.dart';
+import '../integrations/engine_api/engine_api_catalog.dart';
+import '../integrations/engine_api/engine_api_request.dart';
 
 class EngineController extends ChangeNotifier {
   EngineController(this._bridge) {
@@ -38,6 +40,8 @@ class EngineController extends ChangeNotifier {
   final Map<String, Completer<Map<String, dynamic>>> _commands = {};
   int _requestSequence = 0;
   bool get playbackPending => _commands.isNotEmpty;
+  bool _stopPending = false;
+  bool get stopPending => _stopPending;
   bool supportsPlayback(String action) =>
       _bridge is PlaybackEngineBridge && capabilities.contains(action);
 
@@ -47,14 +51,33 @@ class EngineController extends ChangeNotifier {
     String? songId,
     int? volume,
   }) async {
-    if (action == 'volume' && (volume == null || volume < 0 || volume > 100)) {
-      _fail(StateError('El volumen debe estar entre 0 y 100.'));
+    final operation = EngineOperation.fromWire(action);
+    if (operation == null) {
+      _fail(StateError('Operación local no registrada.'));
+      return false;
+    }
+    return executeEngineRequest(
+      EngineApiRequest(
+        operation: operation,
+        zoneId: zoneId,
+        songId: songId,
+        volume: volume,
+      ),
+    );
+  }
+
+  /// New integrations use typed requests; playback remains a compatibility shim.
+  Future<bool> executeEngineRequest(EngineApiRequest request) async {
+    final validation = request.validate();
+    if (validation != null) {
+      _fail(StateError(validation));
       return false;
     }
     if (!running ||
         !fresh ||
-        playbackPending ||
-        !supportsPlayback(action) ||
+        (playbackPending &&
+            (request.operation != EngineOperation.stop || stopPending)) ||
+        !supportsPlayback(request.operation.wireName) ||
         configurationError.isNotEmpty) {
       return false;
     }
@@ -62,22 +85,22 @@ class EngineController extends ChangeNotifier {
         '${DateTime.now().microsecondsSinceEpoch}-${++_requestSequence}';
     final result = Completer<Map<String, dynamic>>();
     _commands[requestId] = result;
+    if (request.operation == EngineOperation.stop) _stopPending = true;
     error = '';
     notifyListeners();
     // Attach timeout/error handling before writing to the process.
     final response = result.future.timeout(const Duration(seconds: 40));
     try {
-      await (_bridge as PlaybackEngineBridge).sendPlayback({
-        'request_id': requestId,
-        'zone_id': zoneId,
-        'config_revision': revision,
-        'action': action,
-        'song_id': ?songId,
-        'volume': ?volume,
-      });
+      await (_bridge as PlaybackEngineBridge).sendPlayback(
+        request.toJson(requestId: requestId, revision: revision),
+      );
       final value = await response;
       if (value['outcome'] != 'succeeded') {
         final failure = value['error'] as Map?;
+        // An explicit local stop may supersede the track still loading.
+        if (failure?['code'] == 'command_superseded' && stopPending) {
+          return false;
+        }
         throw StateError(
           failure?['message']?.toString() ?? 'El motor rechazó la orden.',
         );
@@ -95,6 +118,7 @@ class EngineController extends ChangeNotifier {
       return false;
     } finally {
       _commands.remove(requestId);
+      if (request.operation == EngineOperation.stop) _stopPending = false;
       notifyListeners();
     }
   }

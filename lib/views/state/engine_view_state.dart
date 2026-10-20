@@ -86,7 +86,9 @@ class EngineViewState extends AudioViewState {
           : TrackViewData(
               'Canción ${zone.songId}',
               'Artista no reportado',
-              0,
+              zone.durationMs == null || zone.durationMs! <= 0
+                  ? 0
+                  : (zone.durationMs! / 1000).ceil(),
               UiColors.muted,
             );
   }
@@ -182,7 +184,7 @@ class EngineViewState extends AudioViewState {
   bool canPlayback(String action) =>
       hasSelection &&
       fresh &&
-      !playbackPending &&
+      (!playbackPending || (action == 'stop' && !controller.stopPending)) &&
       controller.configurationError.isEmpty &&
       controller.supportsPlayback(action);
   void _playback(String action, {String? songId}) {
@@ -200,6 +202,8 @@ class EngineViewState extends AudioViewState {
   );
   @override
   void skip(int direction) => _playback(direction < 0 ? 'previous' : 'next');
+  @override
+  void stopPlayback() => _playback('stop');
   @override
   void playSong(String songId) => _playback('play', songId: songId);
   @override

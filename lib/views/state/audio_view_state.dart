@@ -90,6 +90,7 @@ abstract class AudioViewState extends ChangeNotifier {
   void toggle(int index) => _unsupported();
   void setChannels(String value) => _unsupported();
   void togglePlayback() => _unsupported();
+  void stopPlayback() => _unsupported();
   void seek(double seconds) => _unsupported();
   void skip(int direction) => _unsupported();
   void toggleShuffle() => _unsupported();

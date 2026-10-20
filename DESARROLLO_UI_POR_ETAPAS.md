@@ -514,3 +514,19 @@ Backend Laravel inspeccionado para documentar rutas y archivos; sin modificacion
 Motor 0.8.2: capacidad volume y parámetro entero 0–100 conectado a perilla/sliders Flutter. Agrupación de solicitudes 200 ms, confirmación del motor y override local hasta nueva revisión del servidor o reinicio. Snapshot Desktop muestra volumen efectivo; heartbeat conserva volumen configurado para respetar el contrato Laravel existente. Sin cambios de backend. Detalle: docs/VOLUMEN_DESKTOP.md. Por petición del usuario, no se ejecutaron pruebas; solo compilación release Go/Flutter.
 
 Compilación Go 0.8.2 correcta. Flutter Windows release UTRACK_TEST=false compilado en C:/Develop/ENGINE/.builds/utrack-volume-082 por desaparición de temporales en el árbol original. Paquete completo: Releases/Utrack-Desktop-0.1.0-windows-x64-volumen-conectado.zip. No se ejecutaron tests ni pruebas de audio.
+
+## Espacio de integración y ajustes adicionales — 20/10/2026
+
+Registro central de operaciones locales Flutter y solicitud tipada con validación/JSON. Nueva sección Ajustes → Funciones y ajustes adicionales; registro de paneles extensibles por capacidad. En Go se separaron protocolo, catálogo de operaciones, despacho y volumen en desktop_protocol.go, desktop_operations.go, desktop_commands.go y desktop_volume.go. Rutas HTTP existentes centralizadas en engine_api_routes.go y consumidas por Client. Sin nuevas APIs de backend, datos de muestra ni nuevas acciones habilitadas. Guía: docs/AGREGAR_APIS_Y_FUNCIONES.md. Compilación Go y análisis Dart; sin ejecutar pruebas, conforme a la instrucción vigente.
+
+## Detener zona desde Desktop — 20/10/2026
+
+Motor 0.8.3 anuncia stop como operación JSON por zona. Desktop añade botón Detener zona y permite parar una reproducción en carga sin cerrar el proceso ni afectar las demás zonas. Se mantiene stop textual como cierre del motor completo. Backend sin modificaciones. Guía: docs/DETENER_ZONA_DESKTOP.md. Sin ejecutar pruebas conforme a la instrucción vigente.
+
+Compilación Windows UTRACK_TEST=false correcta con motor 0.8.3. Análisis Dart sin incidencias. Paquete: Releases/Utrack-Desktop-0.1.0-windows-x64-detener-zona.zip. Incluye sección de ajustes adicionales y detener zona. No se ejecutaron tests ni audio físico.
+
+## Tiempos de reproducción — 20/10/2026
+
+Motor 0.8.4: contador PCM por pista, duración del decodificador, conservación de Seek en descargas y tiempos opcionales en DesktopZone. Flutter presenta transcurrido/duración y avance de solo lectura. Backend y heartbeat sin modificaciones. Documento: docs/TIEMPOS_REPRODUCCION.md. No se ejecutaron pruebas ni audio físico.
+
+Compilación Go y Windows release correctas, análisis Dart sin incidencias. Entrega completa: Releases/Utrack-Desktop-0.1.0-windows-x64-tiempos-reproduccion.zip con motor 0.8.4. Sin ejecutar pruebas ni audio físico.

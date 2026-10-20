@@ -123,6 +123,12 @@ class _PlayerBarState extends State<PlayerBar> {
         label: 'Canción siguiente',
         onPressed: _state.canPlayback('next') ? () => _skip(1) : null,
       ),
+      if (!_state.isSimulated)
+        UiIconControl(
+          icon: Icons.stop,
+          label: 'Detener zona',
+          onPressed: _state.canPlayback('stop') ? _state.stopPlayback : null,
+        ),
       UiIconControl(
         icon: Icons.repeat,
         label: 'Repetir',
@@ -180,6 +186,8 @@ class _PlayerBarState extends State<PlayerBar> {
           label: _time(_position),
           semanticFormatterCallback: (value) => _state.isSimulated
               ? 'Posición simulada: ${_time(value)} de ${_time(_track.seconds.toDouble())}'
+              : _track.seconds > 0
+              ? 'Posición reportada: ${_time(value)} de ${_time(_track.seconds.toDouble())}'
               : 'Posición reportada; duración no disponible',
           onChanged: _state.canControlZones ? _state.seek : null,
         ),

@@ -23,6 +23,7 @@ El empaquetado necesita `windows/engine/engine.exe`. Salida: `build/windows/x64/
 
 | Documento | Contenido |
 | --- | --- |
+| [Agregar APIs y funciones](docs/AGREGAR_APIS_Y_FUNCIONES.md) | Registros centrales, paneles adicionales y flujo de integración |
 | [Conexiones Desktop y APIs pendientes](docs/CONEXIONES_DESKTOP_Y_APIS_PENDIENTES.md) | Funciones conectadas, flujo y archivos de backend/Go/Flutter |
 | [Producción](docs/PRODUCCION.md) | Configuración, datos disponibles y límites comprobados |
 | [Arquitectura](docs/ARQUITECTURA.md) | Estructura y responsabilidades |

@@ -7,6 +7,7 @@ import 'configuration_view.dart';
 import 'overview_view.dart';
 import 'layout/utrack_shell.dart';
 import 'state/engine_view_state.dart';
+import 'settings/engine_extensions_registry.dart';
 
 class EngineDashboard extends StatefulWidget {
   const EngineDashboard({
@@ -69,6 +70,7 @@ class _EngineDashboardState extends State<EngineDashboard> {
                 child: ConfigurationView(controller: c),
               ),
               const SizedBox(height: 24),
+              EngineExtensionsView(controller: c),
               ActivityView(controller: c),
             ],
           ),

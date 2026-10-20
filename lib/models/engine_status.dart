@@ -9,6 +9,7 @@ class ZoneStatus {
     required this.channels,
     this.songId,
     this.positionMs,
+    this.durationMs,
     this.error,
     this.songs = const [],
   });
@@ -16,6 +17,7 @@ class ZoneStatus {
   final String id, name, state, playlist, mode;
   final int volume;
   final int? positionMs;
+  final int? durationMs;
   final List<int> channels;
   final String? songId, error;
   final List<String> songs;
@@ -37,7 +39,9 @@ class ZoneStatus {
       songs: (info['songs'] as List? ?? []).whereType<String>().toList(
         growable: false,
       ),
-      positionMs: (json['position_ms'] as num?)?.toInt(),
+      positionMs: ((info['position_ms'] ?? json['position_ms']) as num?)
+          ?.toInt(),
+      durationMs: (info['duration_ms'] as num?)?.toInt(),
       error: (json['error'] as Map<String, dynamic>?)?['message'] as String?,
     );
   }
