@@ -1,18 +1,18 @@
 import 'package:flutter/material.dart';
 
 abstract final class UiColors {
-  static const background = Color(0xff070a0d);
-  static const surface = Color(0xff0c1014);
-  static const elevated = Color(0xff181e25);
-  static const input = Color(0xff090d12);
-  static const border = Color(0xff2b333d);
-  static const text = Color(0xfff0eeeb);
-  static const muted = Color(0xffabb0b8);
-  static const accent = Color(0xffdfc1a0);
-  static const onAccent = Color(0xff211a13);
-  static const operational = Color(0xff68e4c3);
-  static const warning = Color(0xffe1b870);
-  static const error = Color(0xffef9c98);
+  static const background = Color(0xff101828);
+  static const surface = Color(0xff1a2435);
+  static const elevated = Color(0xff1f2a3d);
+  static const input = Color(0xff131d2e);
+  static const border = Color(0xff354052);
+  static const text = Color(0xffffffff);
+  static const muted = Color(0xffb4bac5);
+  static const accent = Color(0xffd14f20);
+  static const onAccent = Color(0xffffffff);
+  static const operational = Color(0xff89fc9a);
+  static const warning = Color(0xfffeffb7);
+  static const error = Color(0xffff9a9a);
 }
 
 abstract final class UiSpace {
@@ -63,7 +63,7 @@ abstract final class UiType {
 abstract final class UiEffects {
   static const border = BorderSide(color: UiColors.border);
   static const cardShadow = [
-    BoxShadow(color: Color(0x20000000), blurRadius: 16, offset: Offset(0, 4)),
+    BoxShadow(color: Color(0x14000000), blurRadius: 12, offset: Offset(0, 4)),
   ];
   static const cardDecoration = BoxDecoration(
     color: UiColors.surface,

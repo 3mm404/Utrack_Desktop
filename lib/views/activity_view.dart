@@ -48,7 +48,7 @@ class ActivityView extends StatelessWidget {
                         Text(
                           '${entry.time.hour.toString().padLeft(2, '0')}:${entry.time.minute.toString().padLeft(2, '0')}:${entry.time.second.toString().padLeft(2, '0')}',
                           style: const TextStyle(
-                            color: Color(0xff57d5be),
+                            color: Color(0xff89fc9a),
                             fontSize: 12,
                           ),
                         ),

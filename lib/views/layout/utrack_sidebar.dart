@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
-import '../widgets/metal_dial.dart';
+import '../widgets/cherbyte_mark.dart';
 
 const shellLabels = [
   'Inicio',
@@ -45,7 +45,7 @@ class UtrackSidebar extends StatelessWidget {
           child: Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const MetalDial(size: 54, brand: true),
+              const CherbyteMark(size: 48),
               if (expanded)
                 const Padding(
                   padding: EdgeInsets.only(left: UiSpace.md),
@@ -56,7 +56,7 @@ class UtrackSidebar extends StatelessWidget {
                         'UTRACK',
                         style: TextStyle(
                           fontSize: 19,
-                          letterSpacing: 2.5,
+                          letterSpacing: 1.5,
                           fontWeight: FontWeight.w600,
                           color: UiColors.text,
                         ),

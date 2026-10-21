@@ -186,7 +186,7 @@ class _ZoneMapState extends State<ZoneMap> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xee080c10),
+        color: const Color(0xee101828),
         borderRadius: UiRadii.card,
         border: Border.all(
           color: _selected == index

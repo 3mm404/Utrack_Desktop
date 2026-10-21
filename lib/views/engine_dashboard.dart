@@ -106,7 +106,7 @@ class _EngineDashboardState extends State<EngineDashboard> {
                 NavigationRail(
                   extended: wide,
                   minExtendedWidth: 220,
-                  backgroundColor: const Color(0xff0c0f13),
+                  backgroundColor: const Color(0xff101828),
                   selectedIndex: _page,
                   onDestinationSelected: (index) =>
                       setState(() => _page = index),
@@ -121,7 +121,7 @@ class _EngineDashboardState extends State<EngineDashboard> {
                         const Icon(
                           Icons.multitrack_audio,
                           size: 32,
-                          color: Color(0xffd8b895),
+                          color: Color(0xffd14f20),
                         ),
                         if (wide)
                           const Padding(
@@ -195,7 +195,7 @@ class _EngineDashboardState extends State<EngineDashboard> {
                                   style: TextStyle(
                                     fontSize: 11,
                                     letterSpacing: 2.3,
-                                    color: Color(0xff8ca2b9),
+                                    color: Color(0xffb4bac5),
                                   ),
                                 ),
                               ],
@@ -212,7 +212,7 @@ class _EngineDashboardState extends State<EngineDashboard> {
                             Icons.circle,
                             size: 9,
                             color: c.connected
-                                ? const Color(0xffd8b895)
+                                ? const Color(0xffd14f20)
                                 : Colors.blueGrey,
                           ),
                           const SizedBox(width: 8),

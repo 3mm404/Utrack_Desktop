@@ -93,7 +93,7 @@ class OverviewView extends StatelessWidget {
             Icons.circle,
             size: 10,
             color: c.running && c.fresh
-                ? const Color(0xff63e6c5)
+                ? const Color(0xff89fc9a)
                 : Colors.blueGrey,
           ),
           child: c.zones.isEmpty
@@ -125,7 +125,7 @@ class OverviewView extends StatelessWidget {
                           margin: const EdgeInsets.only(bottom: 12),
                           padding: const EdgeInsets.all(18),
                           decoration: BoxDecoration(
-                            color: const Color(0xff101419),
+                            color: const Color(0xff131d2e),
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: Column(
@@ -135,7 +135,7 @@ class OverviewView extends StatelessWidget {
                                 children: [
                                   const Icon(
                                     Icons.graphic_eq,
-                                    color: Color(0xff63e6c5),
+                                    color: Color(0xff89fc9a),
                                   ),
                                   const SizedBox(width: 12),
                                   Expanded(
@@ -154,7 +154,7 @@ class OverviewView extends StatelessWidget {
                                     style: TextStyle(
                                       color: zone.error != null
                                           ? Colors.amber
-                                          : const Color(0xffa9b9ca),
+                                          : const Color(0xffb4bac5),
                                     ),
                                   ),
                                 ],
@@ -212,7 +212,7 @@ class OverviewView extends StatelessWidget {
               const SizedBox(height: 10),
               const Text(
                 'Al cerrar esta aplicación se detiene el motor que inició. No se ejecuta como servicio.',
-                style: TextStyle(color: Color(0xffa9b9ca)),
+                style: TextStyle(color: Color(0xffb4bac5)),
               ),
             ],
           ),
@@ -230,9 +230,9 @@ class OverviewView extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Icon(icon, color: const Color(0xff63e6c5)),
+                Icon(icon, color: const Color(0xff89fc9a)),
                 const SizedBox(height: 18),
-                Text(label, style: const TextStyle(color: Color(0xffa9b9ca))),
+                Text(label, style: const TextStyle(color: Color(0xffb4bac5))),
                 const SizedBox(height: 8),
                 Text(
                   value,

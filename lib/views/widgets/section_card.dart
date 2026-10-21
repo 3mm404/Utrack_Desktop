@@ -25,7 +25,7 @@ class SectionCard extends StatelessWidget {
       gradient: LinearGradient(
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
-        colors: [Color(0xff10151a), Color(0xff080c10)],
+        colors: [Color(0xff1a2435), Color(0xff101828)],
       ),
       boxShadow: [
         BoxShadow(

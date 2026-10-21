@@ -214,7 +214,7 @@ class _ConfigurationViewState extends State<ConfigurationView> {
                               : 'Cada zona usa los canales asignados en Laravel. El driver debe estar instalado y admitir la frecuencia y el buffer seleccionados.',
                           style: const TextStyle(
                             height: 1.5,
-                            color: Color(0xffa9b9ca),
+                            color: Color(0xffb4bac5),
                           ),
                         ),
                         const SizedBox(height: 22),

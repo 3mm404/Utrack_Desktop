@@ -25,7 +25,7 @@ class _ZoneConsoleState extends State<ZoneConsole> {
     final current = c.running && c.fresh;
     final selection = SectionCard(
       title: 'Zona seleccionada',
-      trailing: const Icon(Icons.speaker_outlined, color: Color(0xffd8b895)),
+      trailing: const Icon(Icons.speaker_outlined, color: Color(0xffd14f20)),
       child: zone == null
           ? const Padding(
               padding: EdgeInsets.symmetric(vertical: 40),
@@ -57,7 +57,7 @@ class _ZoneConsoleState extends State<ZoneConsole> {
                         child: CircularProgressIndicator(
                           value: zone.volume.clamp(0, 100) / 100,
                           strokeWidth: 6,
-                          color: const Color(0xffd8b895),
+                          color: const Color(0xffd14f20),
                           backgroundColor: const Color(0xff30353b),
                         ),
                       ),
@@ -91,7 +91,7 @@ class _ZoneConsoleState extends State<ZoneConsole> {
                 const SizedBox(height: 18),
                 const Text(
                   'Volumen observado',
-                  style: TextStyle(color: Color(0xffa9b9ca)),
+                  style: TextStyle(color: Color(0xffb4bac5)),
                 ),
                 const Divider(height: 30),
                 ListTile(
@@ -128,7 +128,7 @@ class _ZoneConsoleState extends State<ZoneConsole> {
           const Icon(
             Icons.speaker_group_outlined,
             size: 64,
-            color: Color(0xffd8b895),
+            color: Color(0xffd14f20),
           ),
           const SizedBox(height: 20),
           Text(
@@ -150,7 +150,7 @@ class _ZoneConsoleState extends State<ZoneConsole> {
           const SizedBox(height: 12),
           Text(
             current ? 'Estado actualizado' : 'Esperando estado del motor',
-            style: const TextStyle(color: Color(0xffa9b9ca)),
+            style: const TextStyle(color: Color(0xffb4bac5)),
           ),
         ],
       ),

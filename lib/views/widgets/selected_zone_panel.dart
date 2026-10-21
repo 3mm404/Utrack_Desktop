@@ -81,7 +81,7 @@ class SelectedZonePanel extends StatelessWidget {
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xff202429), Color(0xff0d1115)],
+                colors: [Color(0xff1f2a3d), Color(0xff131d2e)],
               ),
             ),
             child: Column(
