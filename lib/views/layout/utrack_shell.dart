@@ -88,8 +88,8 @@ class _UtrackShellState extends State<UtrackShell> {
       state: _zoneState,
       showControls: false,
       maxSceneWidth: width >= 1000
-          ? (height - 120).clamp(300, 580).toDouble()
-          : 580,
+          ? ((height - 120) * (1672 / 941)).clamp(300, 1030).toDouble()
+          : 1030,
     );
     final selected = SelectedZonePanel(state: _zoneState, compact: true);
     final devices = Column(

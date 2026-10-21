@@ -117,11 +117,12 @@ class _ZoneMapState extends State<ZoneMap> {
         child: SizedBox(
           width: sceneWidth,
           child: AspectRatio(
-            aspectRatio: 1,
+            aspectRatio: 1672 / 941,
             child: RepaintBoundary(
               child: LayoutBuilder(
                 builder: (context, bounds) {
                   final side = bounds.maxWidth;
+                  final height = bounds.maxHeight;
                   final callouts = side >= 430;
                   const labels = [
                     Offset(.01, .13),
@@ -148,7 +149,7 @@ class _ZoneMapState extends State<ZoneMap> {
                       for (var i = 0; i < _zones.length; i++)
                         Positioned(
                           left: _zones[i].position.dx * side - 26,
-                          top: _zones[i].position.dy * side - 26,
+                          top: _zones[i].position.dy * height - 26,
                           child: Semantics(
                             label: 'Seleccionar ${_zones[i].name}',
                             selected: _selected == i,
@@ -167,7 +168,7 @@ class _ZoneMapState extends State<ZoneMap> {
                         for (var i = 0; i < _zones.length; i++)
                           Positioned(
                             left: labels[i].dx * side,
-                            top: labels[i].dy * side,
+                            top: labels[i].dy * height,
                             width: side * .25,
                             child: _callout(i),
                           ),

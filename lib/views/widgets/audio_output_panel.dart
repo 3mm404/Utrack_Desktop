@@ -178,14 +178,13 @@ class _DeviceImage extends StatelessWidget {
   @override
   Widget build(BuildContext context) => DecoratedBox(
     decoration: BoxDecoration(
-      color: UiPalette.of(context).input,
+      color: Colors.transparent,
       borderRadius: UiRadii.control,
-      border: Border.fromBorderSide(UiDecor.of(context).border),
     ),
     child: ClipRRect(
       borderRadius: UiRadii.control,
       child: AspectRatio(
-        aspectRatio: compact ? 2.4 : 1.6,
+        aspectRatio: 1683 / 934,
         child: Image.asset(
           'assets/images/audio_interface.png',
           fit: BoxFit.contain,
