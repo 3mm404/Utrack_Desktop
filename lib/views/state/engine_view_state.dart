@@ -78,6 +78,7 @@ class EngineViewState extends AudioViewState {
           controller.running && controller.fresh && zone.state == 'playing'
       ..positionMs = zone.positionMs
       ..durationMs = zone.durationMs
+      ..schedule = zone.schedule
       ..progress = (zone.positionMs ?? 0) / 1000
       ..observedState = zone.label
       ..failure = zone.error

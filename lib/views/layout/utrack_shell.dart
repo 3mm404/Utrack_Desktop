@@ -8,6 +8,7 @@ import '../widgets/audio_output_panel.dart';
 import '../widgets/engine_status_panel.dart';
 import '../widgets/selected_zone_panel.dart';
 import '../widgets/assigned_playlist_panel.dart';
+import '../schedule_view.dart';
 import '../state/zone_preview_state.dart';
 import 'utrack_header.dart';
 import 'utrack_sidebar.dart';
@@ -330,6 +331,8 @@ class _UtrackShellState extends State<UtrackShell> {
                                 ? _devices(content.maxWidth)
                                 : _selected == 4
                                 ? widget.settings
+                                : _selected == 5
+                                ? ScheduleView(state: _zoneState)
                                 : _selected == 2 && !_zoneState.isSimulated
                                 ? AssignedPlaylistPanel(state: _zoneState)
                                 : _placeholder(

@@ -1,3 +1,5 @@
+import 'schedule_info.dart';
+
 class ZoneStatus {
   const ZoneStatus({
     required this.id,
@@ -16,6 +18,7 @@ class ZoneStatus {
     this.shuffle = false,
     this.repeatMode = '',
     this.continuousPlayback = false,
+    this.schedule,
   });
 
   final String id, name, state, playlist, mode;
@@ -28,6 +31,7 @@ class ZoneStatus {
   final Map<String, SongMetadata> songMetadata;
   final bool shuffle, continuousPlayback;
   final String repeatMode;
+  final ScheduleInfo? schedule;
 
   factory ZoneStatus.fromJson(
     Map<String, dynamic> json,
@@ -55,6 +59,11 @@ class ZoneStatus {
       shuffle: info['shuffle'] as bool? ?? false,
       repeatMode: info['repeat_mode'] as String? ?? '',
       continuousPlayback: info['continuous_playback'] as bool? ?? false,
+      schedule: info['schedule'] is Map
+          ? ScheduleInfo.fromJson(
+              Map<String, dynamic>.from(info['schedule'] as Map),
+            )
+          : null,
       songs: (info['songs'] as List? ?? []).whereType<String>().toList(
         growable: false,
       ),
