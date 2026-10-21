@@ -28,7 +28,11 @@ class ZoneViewData {
   bool playing = false, shuffle = false, repeat = false;
   TrackViewData? track;
   List<String> songs = const [];
+  Map<String, TrackViewData> songMetadata = const {};
+  bool continuousPlayback = false;
+  String repeatMode = '';
   int? positionMs;
+  int? durationMs;
   String? observedState, failure;
   String get song => track?.title ?? 'Sin canción reportada';
 }
@@ -71,6 +75,8 @@ abstract class AudioViewState extends ChangeNotifier {
   VoidCallback? get refreshAction => null;
   bool get canControlZones => isSimulated;
   bool get canSetVolume => canControlZones;
+  bool get canSeek => canControlZones;
+  bool get canSetPlaybackModes => canControlZones;
   bool get volumePending => false;
   bool canPlayback(String action) => canControlZones;
   bool get playbackPending => false;
@@ -95,6 +101,7 @@ abstract class AudioViewState extends ChangeNotifier {
   void skip(int direction) => _unsupported();
   void toggleShuffle() => _unsupported();
   void toggleRepeat() => _unsupported();
+  void toggleAutoAdvance() => _unsupported();
   void toggleMute() => _unsupported();
   void selectDevice(int index) => _unsupported();
 }

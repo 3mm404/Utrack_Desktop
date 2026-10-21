@@ -66,7 +66,7 @@ class _ConfigurationViewState extends State<ConfigurationView> {
     super.dispose();
   }
 
-  Future<void> _save() async {
+  Future<void> _save({bool connect = false}) async {
     if (!_form.currentState!.validate()) return;
     final saved = await widget.controller.save(
       EngineSettings(
@@ -83,6 +83,7 @@ class _ConfigurationViewState extends State<ConfigurationView> {
     if (saved && mounted) {
       _token.clear();
       setState(_load);
+      if (connect) await widget.controller.start();
     }
   }
 
@@ -112,9 +113,31 @@ class _ConfigurationViewState extends State<ConfigurationView> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (c.running || c.externalRunning)
-            const Padding(
-              padding: EdgeInsets.only(bottom: 16),
-              child: Text('Detén el motor antes de cambiar la configuración.'),
+            Padding(
+              padding: const EdgeInsets.only(bottom: 16),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    c.externalRunning
+                        ? 'Otro engine está usando la configuración. Cierra esa instancia para cambiar el servidor o token.'
+                        : 'Detén el motor para cambiar el servidor o token.',
+                  ),
+                  TextButton.icon(
+                    onPressed: c.busy
+                        ? null
+                        : c.running
+                        ? c.stop
+                        : c.refresh,
+                    icon: Icon(c.running ? Icons.stop : Icons.refresh),
+                    label: Text(
+                      c.running
+                          ? 'Detener para configurar'
+                          : 'Actualizar estado',
+                    ),
+                  ),
+                ],
+              ),
             ),
           AbsorbPointer(
             absorbing: !c.canConfigure,
@@ -165,6 +188,14 @@ class _ConfigurationViewState extends State<ConfigurationView> {
                             ),
                           ),
                           onChanged: (_) => c.markDirty(),
+                        ),
+                        const SizedBox(height: 16),
+                        FilledButton.icon(
+                          onPressed: c.canConfigure
+                              ? () => _save(connect: true)
+                              : null,
+                          icon: const Icon(Icons.link),
+                          label: const Text('Guardar token y conectar'),
                         ),
                       ],
                     ),
@@ -336,7 +367,12 @@ class _ConfigurationViewState extends State<ConfigurationView> {
             crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               FilledButton.icon(
-                onPressed: c.canConfigure ? _save : null,
+                onPressed: c.canConfigure ? () => _save(connect: true) : null,
+                icon: const Icon(Icons.link),
+                label: const Text('Guardar y conectar'),
+              ),
+              OutlinedButton.icon(
+                onPressed: c.canConfigure ? () => _save() : null,
                 icon: const Icon(Icons.save_outlined),
                 label: const Text('Guardar configuración'),
               ),

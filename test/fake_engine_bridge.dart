@@ -43,6 +43,8 @@ class FakeEngineBridge implements EngineBridge, PlaybackEngineBridge {
         'next',
         'previous',
         'playlist_read',
+        'seek',
+        'playback_modes',
       ],
     'version': '0.8.0',
     'configured': configured,

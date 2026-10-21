@@ -7,7 +7,9 @@ enum EngineOperation {
   stop('stop', 'Detener zona'),
   next('next', 'Siguiente canción'),
   previous('previous', 'Canción anterior'),
-  volume('volume', 'Volumen por zona', requiresVolume: true);
+  volume('volume', 'Volumen por zona', requiresVolume: true),
+  seek('seek', 'Posición de la canción'),
+  playbackModes('playback_modes', 'Modos de reproducción');
 
   const EngineOperation(
     this.wireName,

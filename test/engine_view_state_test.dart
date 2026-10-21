@@ -4,6 +4,102 @@ import 'package:utrack_v1/views/state/engine_view_state.dart';
 import 'fake_engine_bridge.dart';
 
 void main() {
+  test(
+    'Envía modos al servidor y posición al engine sin cambiar el estado antes de confirmar',
+    () async {
+      final bridge = FakeEngineBridge()..playbackEnabled = true;
+      final controller = EngineController(bridge);
+      final view = EngineViewState(controller);
+      addTearDown(view.dispose);
+      addTearDown(controller.dispose);
+      await controller.initialize();
+      await controller.start();
+      bridge.connected();
+      bridge.stream.add({
+        'type': 'status',
+        'report': {
+          'applied_config_revision': 3,
+          'zones': [
+            {'zone_id': '1', 'song_id': '5', 'state': 'playing', 'volume': 60},
+          ],
+        },
+        'zones': [
+          {
+            'zone_id': '1',
+            'name': 'Terraza',
+            'playlist': 'Ambient',
+            'duration_ms': 90000,
+            'position_ms': 1000,
+            'shuffle': false,
+            'repeat_mode': 'off',
+            'continuous_playback': true,
+          },
+        ],
+      });
+      expect(view.canSetPlaybackModes, isTrue);
+      view.toggleShuffle();
+      expect(bridge.playbackRequests.last['shuffle'], isTrue);
+      expect(view.selected.shuffle, isFalse);
+      bridge.playbackResult('succeeded');
+      await Future<void>.delayed(Duration.zero);
+      view.toggleRepeat();
+      expect(bridge.playbackRequests.last['repeat_mode'], 'track');
+      bridge.playbackResult('succeeded');
+      await Future<void>.delayed(Duration.zero);
+      view.toggleAutoAdvance();
+      expect(bridge.playbackRequests.last['continuous_playback'], isFalse);
+      bridge.playbackResult('succeeded');
+      await Future<void>.delayed(Duration.zero);
+      expect(view.canSeek, isTrue);
+      view.seek(42);
+      expect(bridge.playbackRequests.last['action'], 'seek');
+      expect(bridge.playbackRequests.last['position_ms'], 42000);
+      expect(view.selected.positionMs, 1000);
+      bridge.playbackResult('succeeded');
+      await Future<void>.delayed(Duration.zero);
+    },
+  );
+  test('Muestra metadatos y modos enviados por Laravel', () async {
+    final bridge = FakeEngineBridge();
+    final controller = EngineController(bridge);
+    final view = EngineViewState(controller);
+    addTearDown(view.dispose);
+    addTearDown(controller.dispose);
+    await controller.initialize();
+    await controller.start();
+    bridge.connected();
+    bridge.stream.add({
+      'type': 'status',
+      'report': {
+        'applied_config_revision': 4,
+        'zones': [
+          {'zone_id': '1', 'state': 'playing', 'song_id': '5', 'volume': 60},
+        ],
+      },
+      'zones': [
+        {
+          'zone_id': '1',
+          'name': 'Terraza',
+          'playlist': 'Ambient',
+          'songs': ['5', '6'],
+          'shuffle': true,
+          'repeat_mode': 'playlist',
+          'continuous_playback': true,
+          'song_metadata': [
+            {'song_id': '5', 'title': 'Black Tide', 'artist': 'Artista'},
+            {'song_id': '6', 'title': 'Otra canción', 'artist': null},
+          ],
+        },
+      ],
+    });
+    expect(view.track.title, 'Black Tide');
+    expect(view.track.artist, 'Artista');
+    expect(view.selected.songMetadata['6']!.artist, 'Artista no reportado');
+    expect(view.selected.shuffle, isTrue);
+    expect(view.selected.repeatMode, 'playlist');
+    expect(view.selected.continuousPlayback, isTrue);
+    expect(view.canControlZones, isFalse);
+  });
   late FakeEngineBridge bridge;
   late EngineController controller;
   late EngineViewState view;
@@ -45,7 +141,9 @@ void main() {
     expect(view.track.title, 'Canción 5');
     expect(view.selected.positionMs, isNull);
     expect(view.activeZones, 1);
-    expect(() => view.setVolume(0, 10), throwsUnsupportedError);
+    expect(view.canSetVolume, isFalse);
+    view.setVolume(0, 10);
+    expect(bridge.playbackRequests, isEmpty);
     expect(view.selected.volume, 60);
     view.toggleEngine();
     await Future<void>.delayed(Duration.zero);

@@ -13,6 +13,8 @@ class PlayerBar extends StatefulWidget {
 }
 
 class _PlayerBarState extends State<PlayerBar> {
+  double? _seekDraft;
+  String? _seekZone;
   late final AudioViewState _state;
   @override
   void initState() {
@@ -27,7 +29,9 @@ class _PlayerBarState extends State<PlayerBar> {
   }
 
   TrackViewData get _track => _state.track;
-  double get _position => _state.selected.progress;
+  double get _position => _seekDraft ?? _state.selected.progress;
+  double get _duration =>
+      (_state.selected.durationMs ?? _track.seconds * 1000) / 1000;
   double get _volume => _state.selected.volume;
   bool get _playing => _state.selected.playing;
   bool get _shuffle => _state.selected.shuffle;
@@ -88,7 +92,7 @@ class _PlayerBarState extends State<PlayerBar> {
         icon: Icons.shuffle,
         label: 'Aleatorio',
         selected: _shuffle,
-        onPressed: _state.canControlZones ? _state.toggleShuffle : null,
+        onPressed: _state.canSetPlaybackModes ? _state.toggleShuffle : null,
       ),
       UiIconControl(
         icon: Icons.skip_previous,
@@ -132,10 +136,25 @@ class _PlayerBarState extends State<PlayerBar> {
         ),
       UiIconControl(
         icon: Icons.repeat,
-        label: 'Repetir',
+        label: _state.isSimulated
+            ? 'Repetir'
+            : 'Repetir: ${switch (_state.selected.repeatMode) {
+                'track' => 'una canción',
+                'playlist' => 'playlist',
+                _ => 'desactivado',
+              }}',
         selected: _repeat,
-        onPressed: _state.canControlZones ? _state.toggleRepeat : null,
+        onPressed: _state.canSetPlaybackModes ? _state.toggleRepeat : null,
       ),
+      if (!_state.isSimulated)
+        UiIconControl(
+          icon: Icons.playlist_play,
+          label: 'Avance automático',
+          selected: _state.selected.continuousPlayback,
+          onPressed: _state.canSetPlaybackModes
+              ? _state.toggleAutoAdvance
+              : null,
+        ),
     ],
   );
 
@@ -180,17 +199,35 @@ class _PlayerBarState extends State<PlayerBar> {
       ),
       Expanded(
         child: Slider(
-          value: _track.seconds <= 0
-              ? 0
-              : _position.clamp(0, _track.seconds).toDouble(),
-          max: _track.seconds > 0 ? _track.seconds.toDouble() : 1,
+          value: _duration <= 0 ? 0 : _position.clamp(0, _duration).toDouble(),
+          max: _duration > 0 ? _duration : 1,
           label: _time(_position),
           semanticFormatterCallback: (value) => _state.isSimulated
               ? 'Posición simulada: ${_time(value)} de ${_time(_track.seconds.toDouble())}'
               : _track.seconds > 0
               ? 'Posición reportada: ${_time(value)} de ${_time(_track.seconds.toDouble())}'
               : 'Posición reportada; duración no disponible',
-          onChanged: _state.canControlZones ? _state.seek : null,
+          onChanged: _state.canSeek
+              ? (value) {
+                  if (_state.isSimulated) {
+                    _state.seek(value);
+                    return;
+                  }
+                  setState(() {
+                    _seekZone ??= _state.selected.id;
+                    _seekDraft = value;
+                  });
+                }
+              : null,
+          onChangeEnd: !_state.isSimulated && _state.canSeek
+              ? (value) {
+                  if (_seekZone == _state.selected.id) _state.seek(value);
+                  setState(() {
+                    _seekDraft = null;
+                    _seekZone = null;
+                  });
+                }
+              : null,
         ),
       ),
       Text(

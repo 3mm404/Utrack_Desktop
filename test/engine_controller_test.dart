@@ -5,6 +5,26 @@ import 'fake_engine_bridge.dart';
 
 void main() {
   test(
+    'keeps an actionable credential error after the process exits',
+    () async {
+      final bridge = FakeEngineBridge();
+      final controller = EngineController(bridge);
+      addTearDown(controller.dispose);
+      await controller.initialize();
+      await controller.start();
+      bridge.stream.add({
+        'type': 'connection',
+        'channel': 'session',
+        'connected': false,
+        'message': 'engine API: HTTP 401 (invalid_credential)',
+      });
+      bridge.stream.add({'type': 'exit', 'code': 1});
+      expect(controller.error, contains('Laravel rechazó la credencial'));
+      expect(controller.error, contains('Guardar token y conectar'));
+      expect(controller.running, isFalse);
+    },
+  );
+  test(
     'requires confirmed sync and heartbeat before reporting connected',
     () async {
       final bridge = FakeEngineBridge();

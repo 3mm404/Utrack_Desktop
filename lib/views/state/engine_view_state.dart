@@ -77,15 +77,33 @@ class EngineViewState extends AudioViewState {
       ..playing =
           controller.running && controller.fresh && zone.state == 'playing'
       ..positionMs = zone.positionMs
+      ..durationMs = zone.durationMs
       ..progress = (zone.positionMs ?? 0) / 1000
       ..observedState = zone.label
       ..failure = zone.error
       ..songs = zone.songs
+      ..shuffle = zone.shuffle
+      ..repeat = zone.repeatMode == 'track' || zone.repeatMode == 'playlist'
+      ..repeatMode = zone.repeatMode
+      ..continuousPlayback = zone.continuousPlayback
+      ..songMetadata = {
+        for (final entry in zone.songMetadata.entries)
+          entry.key: TrackViewData(
+            entry.value.title.isEmpty
+                ? 'Canción ${entry.key}'
+                : entry.value.title,
+            entry.value.artist ?? 'Artista no reportado',
+            0,
+            UiColors.muted,
+          ),
+      }
       ..track = zone.songId == null
           ? null
           : TrackViewData(
-              'Canción ${zone.songId}',
-              'Artista no reportado',
+              zone.songMetadata[zone.songId]?.title.isNotEmpty == true
+                  ? zone.songMetadata[zone.songId]!.title
+                  : 'Canción ${zone.songId}',
+              zone.songMetadata[zone.songId]?.artist ?? 'Artista no reportado',
               zone.durationMs == null || zone.durationMs! <= 0
                   ? 0
                   : (zone.durationMs! / 1000).ceil(),
@@ -187,6 +205,68 @@ class EngineViewState extends AudioViewState {
       (!playbackPending || (action == 'stop' && !controller.stopPending)) &&
       controller.configurationError.isEmpty &&
       controller.supportsPlayback(action);
+  @override
+  bool get canSeek =>
+      canPlayback('seek') &&
+      track.seconds > 0 &&
+      (selected.observedState == 'Reproduciendo' ||
+          selected.observedState == 'En pausa');
+  @override
+  bool get canSetPlaybackModes => canPlayback('playback_modes');
+  @override
+  void seek(double seconds) {
+    if (!canSeek || !seconds.isFinite) return;
+    unawaited(
+      controller.playback(
+        selected.id,
+        'seek',
+        positionMs: (seconds * 1000).round().clamp(
+          0,
+          selected.durationMs ?? track.seconds * 1000,
+        ),
+      ),
+    );
+  }
+
+  @override
+  void toggleShuffle() {
+    if (canSetPlaybackModes) {
+      unawaited(
+        controller.playback(
+          selected.id,
+          'playback_modes',
+          shuffle: !selected.shuffle,
+        ),
+      );
+    }
+  }
+
+  @override
+  void toggleRepeat() {
+    if (!canSetPlaybackModes) return;
+    final next = switch (selected.repeatMode) {
+      'off' => 'track',
+      'track' => 'playlist',
+      _ => 'off',
+    };
+    unawaited(
+      controller.playback(selected.id, 'playback_modes', repeatMode: next),
+    );
+  }
+
+  @override
+  void toggleAutoAdvance() {
+    if (canSetPlaybackModes) {
+      unawaited(
+        controller.playback(
+          selected.id,
+          'playback_modes',
+          continuousPlayback: !selected.continuousPlayback,
+        ),
+      );
+    }
+  }
+
   void _playback(String action, {String? songId}) {
     if (!canPlayback(action)) return;
     unawaited(controller.playback(selected.id, action, songId: songId));

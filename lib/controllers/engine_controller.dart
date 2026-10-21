@@ -15,6 +15,7 @@ class EngineController extends ChangeNotifier {
     );
     _timer = Timer.periodic(const Duration(seconds: 2), (_) {
       if (running) notifyListeners();
+      if (externalRunning && !busy && !dirty) unawaited(refresh());
     });
   }
 
@@ -50,6 +51,10 @@ class EngineController extends ChangeNotifier {
     String action, {
     String? songId,
     int? volume,
+    int? positionMs,
+    bool? shuffle,
+    String? repeatMode,
+    bool? continuousPlayback,
   }) async {
     final operation = EngineOperation.fromWire(action);
     if (operation == null) {
@@ -62,6 +67,10 @@ class EngineController extends ChangeNotifier {
         zoneId: zoneId,
         songId: songId,
         volume: volume,
+        positionMs: positionMs,
+        shuffle: shuffle,
+        repeatMode: repeatMode,
+        continuousPlayback: continuousPlayback,
       ),
     );
   }
@@ -205,7 +214,14 @@ class EngineController extends ChangeNotifier {
   }
 
   Future<bool> save(EngineSettings value, String token) async {
-    if (!canConfigure) return false;
+    if (!canConfigure) {
+      _fail(
+        externalRunning
+            ? 'Cierra el engine abierto fuera de Desktop y pulsa Actualizar.'
+            : 'Detén el motor antes de guardar la credencial.',
+      );
+      return false;
+    }
     final validation = value.validate();
     if (validation != null || (!configured && token.trim().isEmpty)) {
       _fail(validation ?? 'Ingresa el token del equipo generado en Laravel.');
@@ -294,7 +310,9 @@ class EngineController extends ChangeNotifier {
           command.complete(result);
         }
       case 'log':
-        _log(event['message'] as String? ?? '');
+        final message = event['message'] as String? ?? '';
+        _log(message);
+        _showConnectionFailure(message);
       case 'connection':
         final ok = event['connected'] == true;
         if (event['channel'] == 'sync') _sync = ok;
@@ -302,7 +320,11 @@ class EngineController extends ChangeNotifier {
           _heartbeat = ok;
           if (ok) lastHeartbeat = DateTime.now();
         }
-        if (!ok) _log(event['message'] as String? ?? 'Conexión pendiente.');
+        if (!ok) {
+          final message = event['message'] as String? ?? 'Conexión pendiente.';
+          _log(message);
+          _showConnectionFailure(message);
+        }
       case 'status':
         final report = event['report'] as Map<String, dynamic>;
         final names = <String, Map<String, dynamic>>{};
@@ -325,13 +347,25 @@ class EngineController extends ChangeNotifier {
         running = false;
         _sync = false;
         _heartbeat = false;
-        if (event['code'] != 0) {
+        if (event['code'] != 0 && error.isEmpty) {
           error =
               'El motor terminó con un error. Revisa el registro de actividad.';
         }
         _log('Motor cerrado (código ${event['code']}).');
     }
     notifyListeners();
+  }
+
+  void _showConnectionFailure(String message) {
+    if (message.contains('invalid_credential') ||
+        message.contains('HTTP 401')) {
+      error =
+          'Laravel rechazó la credencial: el token no está vigente o el equipo está deshabilitado. '
+          'Verifica el equipo en Laravel, pega su credencial vigente y pulsa Guardar token y conectar.';
+    } else if (message.contains('session_superseded')) {
+      error =
+          'Otra instancia abrió una sesión para este equipo. Cierra la otra instancia antes de conectar.';
+    }
   }
 
   void _log(String message) {

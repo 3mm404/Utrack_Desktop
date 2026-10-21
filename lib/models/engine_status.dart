@@ -12,6 +12,10 @@ class ZoneStatus {
     this.durationMs,
     this.error,
     this.songs = const [],
+    this.songMetadata = const {},
+    this.shuffle = false,
+    this.repeatMode = '',
+    this.continuousPlayback = false,
   });
 
   final String id, name, state, playlist, mode;
@@ -21,6 +25,9 @@ class ZoneStatus {
   final List<int> channels;
   final String? songId, error;
   final List<String> songs;
+  final Map<String, SongMetadata> songMetadata;
+  final bool shuffle, continuousPlayback;
+  final String repeatMode;
 
   factory ZoneStatus.fromJson(
     Map<String, dynamic> json,
@@ -36,6 +43,18 @@ class ZoneStatus {
       mode: json['channel_mode'] as String? ?? '',
       channels: (output?['channels'] as List? ?? []).cast<int>(),
       songId: json['song_id']?.toString(),
+      songMetadata: {
+        for (final song
+            in (info['song_metadata'] as List? ?? []).whereType<Map>())
+          if (song['song_id'] is String)
+            song['song_id'] as String: SongMetadata(
+              title: song['title'] as String? ?? '',
+              artist: song['artist'] as String?,
+            ),
+      },
+      shuffle: info['shuffle'] as bool? ?? false,
+      repeatMode: info['repeat_mode'] as String? ?? '',
+      continuousPlayback: info['continuous_playback'] as bool? ?? false,
       songs: (info['songs'] as List? ?? []).whereType<String>().toList(
         growable: false,
       ),
@@ -55,6 +74,12 @@ class ZoneStatus {
     'error' => 'Error',
     _ => 'Sin estado',
   };
+}
+
+class SongMetadata {
+  const SongMetadata({required this.title, this.artist});
+  final String title;
+  final String? artist;
 }
 
 class ActivityEntry {

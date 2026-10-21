@@ -31,16 +31,33 @@ class AssignedPlaylistPanel extends StatelessWidget {
             ),
             const SizedBox(height: 16),
             Text(state.selected.source),
+            if (state.selected.repeatMode.isNotEmpty)
+              Text(
+                'Aleatorio: ${state.selected.shuffle ? 'sí' : 'no'} · '
+                'Avance automático: ${state.selected.continuousPlayback ? 'sí' : 'no'} · '
+                'Repetición: ${switch (state.selected.repeatMode) {
+                  'track' => 'una canción',
+                  'playlist' => 'playlist',
+                  _ => 'desactivada',
+                }}',
+              ),
             if (!state.fresh)
               const Text('Último estado recibido · sin actualización'),
             if (state.selected.songs.isEmpty)
               const Text('Sin canciones reportadas en la playlist asignada.'),
             for (final songId in state.selected.songs)
               ListTile(
-                title: Text('Canción $songId'),
-                subtitle: const Text('Título y artista no reportados'),
+                title: Text(
+                  state.selected.songMetadata[songId]?.title ??
+                      'Canción $songId',
+                ),
+                subtitle: Text(
+                  state.selected.songMetadata[songId]?.artist ??
+                      'Artista no reportado',
+                ),
                 trailing: IconButton(
-                  tooltip: 'Reproducir canción $songId',
+                  tooltip:
+                      'Reproducir ${state.selected.songMetadata[songId]?.title ?? 'canción $songId'}',
                   icon: const Icon(Icons.play_arrow),
                   onPressed: state.canPlayback('play')
                       ? () => state.playSong(songId)
