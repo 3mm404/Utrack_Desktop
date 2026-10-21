@@ -1,5 +1,4 @@
 import 'package:flutter/widgets.dart';
-import '../../models/schedule_info.dart';
 
 class TrackViewData {
   const TrackViewData(this.title, this.artist, this.seconds, this.color);
@@ -34,7 +33,6 @@ class ZoneViewData {
   String repeatMode = '';
   int? positionMs;
   int? durationMs;
-  ScheduleInfo? schedule;
   String? observedState, failure;
   String get song => track?.title ?? 'Sin canción reportada';
 }

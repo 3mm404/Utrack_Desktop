@@ -9,7 +9,6 @@ const shellLabels = [
   'Biblioteca',
   'Dispositivos',
   'Ajustes',
-  'Programación',
 ];
 const shellIcons = [
   Icons.home_outlined,
@@ -17,7 +16,6 @@ const shellIcons = [
   Icons.library_music_outlined,
   Icons.speaker_group_outlined,
   Icons.settings,
-  Icons.calendar_month_outlined,
 ];
 
 class UtrackSidebar extends StatelessWidget {
