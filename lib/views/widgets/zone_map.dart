@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
+import '../design/ui_palette.dart';
 import 'section_card.dart';
 import 'status_indicator.dart';
 import 'ui_controls.dart';
@@ -51,24 +52,24 @@ class _ZoneMapState extends State<ZoneMap> {
         children: [
           _scene(),
           if (_zones.isEmpty)
-            const Padding(
+            Padding(
               padding: EdgeInsets.all(UiSpace.lg),
               child: Text(
                 'No hay zonas recibidas. Configura el servidor y token, inicia el motor y revisa la asignación de zonas en el servidor.',
-                style: UiType.body,
+                style: UiText.of(context).body,
               ),
             ),
           const SizedBox(height: UiSpace.lg),
           if (widget.showControls)
             Text(
               'Zona seleccionada: ${_state.selected.name}',
-              style: UiType.title,
+              style: UiText.of(context).title,
             ),
           const SizedBox(height: UiSpace.sm),
           if (widget.showControls)
-            const Text(
+            Text(
               'Volumen y reproducción de zona se administran desde el servidor',
-              style: UiType.caption,
+              style: UiText.of(context).caption,
             ),
           const SizedBox(height: UiSpace.lg),
           if (!widget.showControls && MediaQuery.sizeOf(context).width < 900)
@@ -136,10 +137,10 @@ class _ZoneMapState extends State<ZoneMap> {
                           'assets/images/zone_floor_plan_v2.png',
                           fit: BoxFit.contain,
                           excludeFromSemantics: true,
-                          errorBuilder: (context, error, stack) => const Center(
+                          errorBuilder: (context, error, stack) => Center(
                             child: Text(
                               'Plano no disponible',
-                              style: UiType.caption,
+                              style: UiText.of(context).caption,
                             ),
                           ),
                         ),
@@ -186,18 +187,18 @@ class _ZoneMapState extends State<ZoneMap> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
       decoration: BoxDecoration(
-        color: const Color(0xee101828),
+        color: UiPalette.of(context).background.withValues(alpha: .94),
         borderRadius: UiRadii.card,
         border: Border.all(
           color: _selected == index
-              ? UiColors.accent.withValues(alpha: .8)
-              : UiColors.border,
+              ? UiPalette.of(context).accent.withValues(alpha: .8)
+              : UiPalette.of(context).border,
         ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(zone.name, style: UiType.body),
+          Text(zone.name, style: UiText.of(context).body),
           Row(
             children: [
               const Icon(Icons.volume_up, size: 15),
@@ -221,7 +222,7 @@ class _ZoneMapState extends State<ZoneMap> {
               ),
               Text(
                 '${zone.volume.round()}%',
-                style: UiType.caption.copyWith(fontSize: 10),
+                style: UiText.of(context).caption.copyWith(fontSize: 10),
               ),
             ],
           ),
@@ -236,9 +237,13 @@ class _ZoneMapState extends State<ZoneMap> {
     return Container(
       padding: const EdgeInsets.all(UiSpace.md),
       decoration: BoxDecoration(
-        color: UiColors.input,
+        color: UiPalette.of(context).input,
         borderRadius: UiRadii.control,
-        border: Border.all(color: selected ? UiColors.accent : UiColors.border),
+        border: Border.all(
+          color: selected
+              ? UiPalette.of(context).accent
+              : UiPalette.of(context).border,
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,

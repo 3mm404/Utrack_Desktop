@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
+import '../design/ui_palette.dart';
 import '../widgets/cherbyte_mark.dart';
 
 const shellLabels = [
@@ -34,9 +35,9 @@ class UtrackSidebar extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     width: expanded ? 238 : 80,
-    decoration: const BoxDecoration(
-      color: UiColors.surface,
-      border: Border(right: UiEffects.border),
+    decoration: BoxDecoration(
+      color: UiPalette.of(context).surface,
+      border: Border(right: UiDecor.of(context).border),
     ),
     child: Column(
       children: [
@@ -47,7 +48,7 @@ class UtrackSidebar extends StatelessWidget {
             children: [
               const CherbyteMark(size: 48),
               if (expanded)
-                const Padding(
+                Padding(
                   padding: EdgeInsets.only(left: UiSpace.md),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -58,10 +59,10 @@ class UtrackSidebar extends StatelessWidget {
                           fontSize: 19,
                           letterSpacing: 1.5,
                           fontWeight: FontWeight.w600,
-                          color: UiColors.text,
+                          color: UiPalette.of(context).text,
                         ),
                       ),
-                      Text('ENGINE', style: UiType.caption),
+                      Text('ENGINE', style: UiText.of(context).caption),
                     ],
                   ),
                 ),
@@ -82,13 +83,15 @@ class UtrackSidebar extends StatelessWidget {
                     message: shellLabels[i],
                     child: Material(
                       color: selected == i
-                          ? UiColors.elevated
+                          ? UiPalette.of(context).elevated
                           : Colors.transparent,
                       shape: RoundedRectangleBorder(
                         borderRadius: UiRadii.card,
                         side: BorderSide(
                           color: selected == i
-                              ? UiColors.accent.withValues(alpha: .4)
+                              ? UiPalette.of(
+                                  context,
+                                ).accent.withValues(alpha: .4)
                               : Colors.transparent,
                         ),
                       ),
@@ -105,18 +108,18 @@ class UtrackSidebar extends StatelessWidget {
                               Icon(
                                 shellIcons[i],
                                 color: selected == i
-                                    ? UiColors.accent
-                                    : UiColors.muted,
+                                    ? UiPalette.of(context).blue
+                                    : UiPalette.of(context).muted,
                               ),
                               if (expanded) ...[
                                 const SizedBox(width: UiSpace.md),
                                 Expanded(
                                   child: Text(
                                     shellLabels[i],
-                                    style: UiType.body.copyWith(
+                                    style: UiText.of(context).body.copyWith(
                                       color: selected == i
-                                          ? UiColors.accent
-                                          : UiColors.muted,
+                                          ? UiPalette.of(context).blue
+                                          : UiPalette.of(context).muted,
                                     ),
                                   ),
                                 ),
@@ -142,11 +145,15 @@ class UtrackSidebar extends StatelessWidget {
                 Icon(
                   Icons.circle,
                   size: 8,
-                  color: connected ? UiColors.operational : UiColors.muted,
+                  color: connected
+                      ? UiPalette.of(context).operational
+                      : UiPalette.of(context).muted,
                 ),
                 if (expanded) ...[
                   const SizedBox(width: UiSpace.sm),
-                  Expanded(child: Text(status, style: UiType.caption)),
+                  Expanded(
+                    child: Text(status, style: UiText.of(context).caption),
+                  ),
                 ],
               ],
             ),

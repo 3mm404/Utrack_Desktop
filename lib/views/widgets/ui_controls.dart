@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
+import '../design/ui_palette.dart';
 
 /// Standard keyboard-focusable icon action. A null callback disables the control.
 class UiIconControl extends StatelessWidget {
@@ -17,20 +18,34 @@ class UiIconControl extends StatelessWidget {
   final bool selected, circular;
 
   @override
-  Widget build(BuildContext context) => IconButton(
-    tooltip: label,
-    onPressed: onPressed,
-    isSelected: selected,
-    icon: Icon(icon),
-    selectedIcon: Icon(icon, color: UiColors.accent),
-    style: IconButton.styleFrom(
-      foregroundColor: UiColors.muted,
-      disabledForegroundColor: UiColors.muted.withValues(alpha: 0.38),
-      backgroundColor: selected ? UiColors.elevated : Colors.transparent,
-      side: circular ? UiEffects.border : BorderSide.none,
-      shape: circular
-          ? const CircleBorder()
-          : const RoundedRectangleBorder(borderRadius: UiRadii.control),
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      shape: circular ? BoxShape.circle : BoxShape.rectangle,
+      borderRadius: circular ? null : UiRadii.control,
+      gradient: circular || selected ? UiDecor.of(context).panelGradient : null,
+      boxShadow: (circular || selected) && onPressed != null
+          ? UiDecor.of(context).controlShadow
+          : null,
+    ),
+    child: IconButton(
+      tooltip: label,
+      onPressed: onPressed,
+      isSelected: selected,
+      icon: Icon(icon),
+      selectedIcon: Icon(icon, color: UiPalette.of(context).accent),
+      style: IconButton.styleFrom(
+        foregroundColor: UiPalette.of(context).muted,
+        disabledForegroundColor: UiPalette.of(
+          context,
+        ).muted.withValues(alpha: 0.38),
+        backgroundColor: selected
+            ? UiPalette.of(context).elevated
+            : Colors.transparent,
+        side: circular ? UiDecor.of(context).border : BorderSide.none,
+        shape: circular
+            ? const CircleBorder()
+            : const RoundedRectangleBorder(borderRadius: UiRadii.control),
+      ),
     ),
   );
 }
@@ -86,19 +101,21 @@ class UiSlider extends StatelessWidget {
       children: [
         Row(
           children: [
-            Expanded(child: Text(label, style: UiType.body)),
+            Expanded(child: Text(label, style: UiText.of(context).body)),
             const SizedBox(width: UiSpace.sm),
-            Text(valueLabel, style: UiType.caption),
+            Text(valueLabel, style: UiText.of(context).caption),
           ],
         ),
         Semantics(
           label: label,
           child: SliderTheme(
             data: SliderTheme.of(context).copyWith(
-              activeTrackColor: UiColors.accent,
-              inactiveTrackColor: UiColors.border,
-              thumbColor: UiColors.accent,
-              overlayColor: UiColors.accent.withValues(alpha: 0.12),
+              activeTrackColor: UiPalette.of(context).accent,
+              inactiveTrackColor: UiPalette.of(context).border,
+              thumbColor: UiPalette.of(context).accent,
+              overlayColor: UiPalette.of(
+                context,
+              ).accent.withValues(alpha: 0.12),
             ),
             child: Slider(
               value: displayed,

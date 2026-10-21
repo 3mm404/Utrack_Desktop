@@ -74,6 +74,8 @@ void main() {
       await tester.pumpAndSettle();
       bridge.connected();
       await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Abrir navegación'));
+      await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Inicio'));
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Pausar'));
@@ -102,6 +104,8 @@ void main() {
       await tester.pump();
       expect(bridge.playbackRequests.last['action'], 'previous');
       bridge.playbackResult('succeeded');
+      await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Abrir navegación'));
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Biblioteca'));
       await tester.pumpAndSettle();

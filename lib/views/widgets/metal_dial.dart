@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../design/ui_tokens.dart';
+import '../design/ui_palette.dart';
 
 /// Small code-native metallic dial, also used as the brand mark.
 class MetalDial extends StatelessWidget {
@@ -24,7 +24,7 @@ class MetalDial extends StatelessWidget {
           colors: brand
               ? [
                   const Color(0xff282521),
-                  UiColors.accent,
+                  UiPalette.of(context).accent,
                   const Color(0xff665445),
                   const Color(0xfff8e7d1),
                   const Color(0xff282521),
@@ -38,7 +38,9 @@ class MetalDial extends StatelessWidget {
                 ],
         ),
         border: Border.all(
-          color: selected || brand ? UiColors.accent : UiColors.border,
+          color: selected || brand
+              ? UiPalette.of(context).accent
+              : UiPalette.of(context).border,
           width: 1.2,
         ),
         boxShadow: [
@@ -49,7 +51,7 @@ class MetalDial extends StatelessWidget {
           ),
           if (selected)
             BoxShadow(
-              color: UiColors.accent.withValues(alpha: .22),
+              color: UiPalette.of(context).accent.withValues(alpha: .22),
               blurRadius: 14,
             ),
         ],
@@ -57,7 +59,7 @@ class MetalDial extends StatelessWidget {
       child: Padding(
         padding: EdgeInsets.all(brand ? 7 : 3),
         child: Material(
-          color: UiColors.background,
+          color: UiPalette.of(context).background,
           shape: const CircleBorder(),
           child: InkWell(
             onTap: onTap,

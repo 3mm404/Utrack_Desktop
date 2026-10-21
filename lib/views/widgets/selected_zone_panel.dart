@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
+import '../design/ui_palette.dart';
 import '../state/zone_preview_state.dart';
 import 'section_card.dart';
 import 'status_indicator.dart';
@@ -23,20 +24,20 @@ class SelectedZonePanel extends StatelessWidget {
         horizontal: UiSpace.md,
         vertical: UiSpace.md,
       ),
-      decoration: const BoxDecoration(
-        color: UiColors.input,
+      decoration: BoxDecoration(
+        color: UiPalette.of(context).input,
         borderRadius: UiRadii.card,
-        border: Border.fromBorderSide(UiEffects.border),
+        border: Border.fromBorderSide(UiDecor.of(context).border),
       ),
       child: Row(
         children: [
-          Icon(icon, size: 22, color: UiColors.muted),
+          Icon(icon, size: 22, color: UiPalette.of(context).muted),
           const SizedBox(width: UiSpace.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: UiType.body),
+                Text(label, style: UiText.of(context).body),
                 const SizedBox(height: UiSpace.xs),
                 value,
               ],
@@ -53,7 +54,7 @@ class SelectedZonePanel extends StatelessWidget {
         children: [
           Text(
             '${state.selectedIndex + 1}/${state.zones.length}',
-            style: UiType.caption,
+            style: UiText.of(context).caption,
           ),
           UiIconControl(
             icon: Icons.chevron_left,
@@ -76,25 +77,30 @@ class SelectedZonePanel extends StatelessWidget {
         children: [
           Container(
             padding: const EdgeInsets.all(UiSpace.md),
-            decoration: const BoxDecoration(
+            decoration: BoxDecoration(
               borderRadius: UiRadii.card,
               gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
-                colors: [Color(0xff1f2a3d), Color(0xff131d2e)],
+                colors: [
+                  UiPalette.of(context).elevated,
+                  UiPalette.of(context).input,
+                ],
               ),
             ),
             child: Column(
               children: [
                 Row(
                   children: [
-                    const Icon(
+                    Icon(
                       Icons.speaker_group_outlined,
                       size: 28,
-                      color: UiColors.accent,
+                      color: UiPalette.of(context).accent,
                     ),
                     const SizedBox(width: UiSpace.md),
-                    Expanded(child: Text(zone.name, style: UiType.title)),
+                    Expanded(
+                      child: Text(zone.name, style: UiText.of(context).title),
+                    ),
                     UiIconControl(
                       icon: zone.active ? Icons.volume_up : Icons.volume_off,
                       label: state.isSimulated
@@ -140,9 +146,12 @@ class SelectedZonePanel extends StatelessWidget {
                   state.volumePending
                       ? 'Volumen solicitado · pendiente'
                       : 'Volumen',
-                  style: UiType.caption,
+                  style: UiText.of(context).caption,
                 ),
-                Text('${zone.volume.round()}%', style: UiType.heading),
+                Text(
+                  '${zone.volume.round()}%',
+                  style: UiText.of(context).heading,
+                ),
               ],
             ),
           ),
@@ -151,7 +160,7 @@ class SelectedZonePanel extends StatelessWidget {
             'Fuente',
             Text(
               'Playlist · ${zone.source}',
-              style: UiType.caption,
+              style: UiText.of(context).caption,
               maxLines: 2,
             ),
           ),
@@ -159,7 +168,7 @@ class SelectedZonePanel extends StatelessWidget {
             Icons.tune,
             'Canales',
             !state.canControlZones
-                ? Text(zone.channels, style: UiType.caption)
+                ? Text(zone.channels, style: UiText.of(context).caption)
                 : DropdownButton<String>(
                     value: zone.channels,
                     isDense: true,
@@ -181,20 +190,24 @@ class SelectedZonePanel extends StatelessWidget {
           detail(
             Icons.multitrack_audio,
             'Canción actual',
-            Text(zone.song, style: UiType.caption, maxLines: 2),
+            Text(zone.song, style: UiText.of(context).caption, maxLines: 2),
           ),
         ],
       ),
     );
   }
 
-  Widget _detail({required String label, required Widget control}) => compact
+  Widget _detail(
+    BuildContext context, {
+    required String label,
+    required Widget control,
+  }) => compact
       ? Padding(
           padding: const EdgeInsets.symmetric(vertical: UiSpace.sm),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              Text(label, style: UiType.caption),
+              Text(label, style: UiText.of(context).caption),
               const SizedBox(height: UiSpace.xs),
               control,
             ],
@@ -206,9 +219,12 @@ class SelectedZonePanel extends StatelessWidget {
     listenable: state,
     builder: (context, _) {
       if (!state.hasSelection) {
-        return const SectionCard(
+        return SectionCard(
           title: 'Zona seleccionada',
-          child: Text('Sin zonas recibidas del motor.', style: UiType.body),
+          child: Text(
+            'Sin zonas recibidas del motor.',
+            style: UiText.of(context).body,
+          ),
         );
       }
       if (compact || !state.isSimulated) return _compactPanel(context);
@@ -219,7 +235,7 @@ class SelectedZonePanel extends StatelessWidget {
         subtitle: compact ? null : 'Vista de prueba · sin audio real',
         trailing: Text(
           '${state.selectedIndex + 1}/${state.zones.length}',
-          style: UiType.caption,
+          style: UiText.of(context).caption,
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -243,7 +259,7 @@ class SelectedZonePanel extends StatelessWidget {
                       zone.name,
                       key: ValueKey(zone.name),
                       textAlign: TextAlign.center,
-                      style: UiType.title,
+                      style: UiText.of(context).title,
                     ),
                   ),
                 ),
@@ -279,11 +295,11 @@ class SelectedZonePanel extends StatelessWidget {
                     : null,
               ),
             ),
-            const Center(
+            Center(
               child: Text(
                 'Volumen · arrastra o usa las flechas',
                 textAlign: TextAlign.center,
-                style: UiType.caption,
+                style: UiText.of(context).caption,
               ),
             ),
             Row(
@@ -314,13 +330,21 @@ class SelectedZonePanel extends StatelessWidget {
             if (!compact)
               ConfigurationRow(
                 label: 'Salida',
-                control: Text(state.device.name, style: UiType.caption),
+                control: Text(
+                  state.device.name,
+                  style: UiText.of(context).caption,
+                ),
               ),
             _detail(
+              context,
               label: 'Fuente',
-              control: Text('Playlist · ${zone.source}', style: UiType.caption),
+              control: Text(
+                'Playlist · ${zone.source}',
+                style: UiText.of(context).caption,
+              ),
             ),
             _detail(
+              context,
               label: 'Canales',
               control: DropdownButtonFormField<String>(
                 key: ValueKey('${zone.name}-${zone.channels}'),
@@ -336,10 +360,11 @@ class SelectedZonePanel extends StatelessWidget {
               ),
             ),
             _detail(
+              context,
               label: 'Canción actual',
               control: Text(
                 zone.playing ? zone.song : 'En pausa · ${zone.song}',
-                style: UiType.caption,
+                style: UiText.of(context).caption,
               ),
             ),
           ],

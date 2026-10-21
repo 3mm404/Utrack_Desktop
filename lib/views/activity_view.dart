@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'design/ui_palette.dart';
 import 'package:flutter/services.dart';
 import '../controllers/engine_controller.dart';
 import 'widgets/section_card.dart';
@@ -47,8 +48,8 @@ class ActivityView extends StatelessWidget {
                       children: [
                         Text(
                           '${entry.time.hour.toString().padLeft(2, '0')}:${entry.time.minute.toString().padLeft(2, '0')}:${entry.time.second.toString().padLeft(2, '0')}',
-                          style: const TextStyle(
-                            color: Color(0xff89fc9a),
+                          style: TextStyle(
+                            color: UiPalette.of(context).operational,
                             fontSize: 12,
                           ),
                         ),
@@ -56,7 +57,7 @@ class ActivityView extends StatelessWidget {
                         Expanded(
                           child: SelectableText(
                             entry.message,
-                            style: const TextStyle(
+                            style: TextStyle(
                               fontFamily: 'Consolas',
                               fontSize: 13,
                               height: 1.5,

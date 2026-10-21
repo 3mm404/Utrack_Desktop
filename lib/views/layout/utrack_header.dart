@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
+import '../design/ui_appearance.dart';
+import '../design/ui_palette.dart';
 import '../widgets/status_indicator.dart';
 import '../widgets/ui_controls.dart';
 
@@ -35,14 +37,16 @@ class UtrackHeader extends StatelessWidget {
             Row(
               children: [
                 Expanded(
-                  child: narrow ? Text(title, style: UiType.heading) : search,
+                  child: narrow
+                      ? Text(title, style: UiText.of(context).heading)
+                      : search,
                 ),
                 const SizedBox(width: UiSpace.lg),
                 ConstrainedBox(
                   constraints: BoxConstraints(maxWidth: narrow ? 48 : 260),
                   child: DecoratedBox(
-                    decoration: const BoxDecoration(
-                      color: UiColors.input,
+                    decoration: BoxDecoration(
+                      color: UiPalette.of(context).input,
                       borderRadius: UiRadii.control,
                     ),
                     child: Padding(
@@ -58,8 +62,9 @@ class UtrackHeader extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: UiSpace.sm),
+                const ThemeToggle(),
                 UiIconControl(
-                  label: 'Abrir ajustes',
+                  label: 'Abrir navegación',
                   onPressed: onSettings,
                   icon: Icons.tune,
                   circular: true,

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
+import '../design/ui_palette.dart';
 
 class PanelHeader extends StatelessWidget {
   const PanelHeader({
@@ -29,7 +30,12 @@ class PanelHeader extends StatelessWidget {
       ),
       if (subtitle != null) ...[
         const SizedBox(height: UiSpace.sm),
-        Text(subtitle!, style: UiType.body.copyWith(color: UiColors.muted)),
+        Text(
+          subtitle!,
+          style: UiText.of(
+            context,
+          ).body.copyWith(color: UiPalette.of(context).muted),
+        ),
       ],
     ],
   );

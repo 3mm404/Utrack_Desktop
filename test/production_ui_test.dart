@@ -45,6 +45,8 @@ void main() {
       await tester.pumpAndSettle();
       bridge.connected();
       await tester.pumpAndSettle();
+      await tester.tap(find.byTooltip('Abrir navegación'));
+      await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Inicio'));
       await tester.pumpAndSettle();
       expect(find.textContaining('Canción 5'), findsWidgets);
@@ -65,8 +67,10 @@ void main() {
           expect(control.onPressed, isNull);
         }
       }
+      await tester.tap(find.byTooltip('Abrir navegación'));
+      await tester.pumpAndSettle();
       final refreshSidebar = tester.widget<UtrackSidebar>(
-        find.byType(UtrackSidebar),
+        find.byType(UtrackSidebar, skipOffstage: false),
       );
       expect(refreshSidebar.connected, isTrue);
       expect(

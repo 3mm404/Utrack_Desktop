@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../design/ui_tokens.dart';
+import '../design/ui_palette.dart';
 
 /// The same vector geometry as the Cherbyte website brand mark.
 class CherbyteMark extends StatelessWidget {
@@ -13,13 +13,14 @@ class CherbyteMark extends StatelessWidget {
     child: SizedBox(
       width: size * 1040 / 1100,
       height: size,
-      child: CustomPaint(painter: const _CherbytePainter()),
+      child: CustomPaint(painter: _CherbytePainter(UiPalette.of(context))),
     ),
   );
 }
 
 class _CherbytePainter extends CustomPainter {
-  const _CherbytePainter();
+  final UiPalette palette;
+  const _CherbytePainter(this.palette);
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -54,11 +55,12 @@ class _CherbytePainter extends CustomPainter {
       ..lineTo(930, 435)
       ..lineTo(848, 435)
       ..close();
-    canvas.drawPath(c, Paint()..color = UiColors.text);
-    canvas.drawPath(bracket, Paint()..color = UiColors.accent);
+    canvas.drawPath(c, Paint()..color = palette.text);
+    canvas.drawPath(bracket, Paint()..color = palette.accent);
     canvas.restore();
   }
 
   @override
-  bool shouldRepaint(covariant _CherbytePainter oldDelegate) => false;
+  bool shouldRepaint(covariant _CherbytePainter oldDelegate) =>
+      oldDelegate.palette != palette;
 }

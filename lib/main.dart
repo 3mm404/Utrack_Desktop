@@ -3,9 +3,11 @@ import 'controllers/engine_controller.dart';
 import 'services/engine_bridge_factory.dart';
 import 'views/engine_dashboard.dart';
 import 'views/design/ui_theme.dart';
+import 'views/design/ui_appearance.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await UiAppearance.initialize();
   runApp(MainApp(controller: EngineController(createEngineBridge())));
 }
 
@@ -19,10 +21,15 @@ class MainApp extends StatelessWidget {
   final bool testMode;
 
   @override
-  Widget build(BuildContext context) => MaterialApp(
-    title: 'Utrack · Engine',
-    debugShowCheckedModeBanner: false,
-    theme: UiTheme.dark,
-    home: EngineDashboard(controller: controller, testMode: testMode),
+  Widget build(BuildContext context) => ValueListenableBuilder<ThemeMode>(
+    valueListenable: UiAppearance.mode,
+    builder: (context, mode, _) => MaterialApp(
+      title: 'Utrack · Engine',
+      debugShowCheckedModeBanner: false,
+      theme: UiTheme.light,
+      darkTheme: UiTheme.dark,
+      themeMode: mode,
+      home: EngineDashboard(controller: controller, testMode: testMode),
+    ),
   );
 }

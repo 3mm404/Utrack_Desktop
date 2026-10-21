@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
+import '../design/ui_palette.dart';
 import 'section_card.dart';
 import 'status_indicator.dart';
 import 'ui_controls.dart';
@@ -50,7 +51,7 @@ class EngineStatusPanel extends StatelessWidget {
             children: [
               Text(
                 '$activeZones / $totalZones zonas activas',
-                style: UiType.body,
+                style: UiText.of(context).body,
               ),
               const SizedBox(height: UiSpace.sm),
               StatusIndicator(
@@ -93,10 +94,16 @@ class EngineStatusPanel extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  const Expanded(
-                    child: Text('Zonas activas', style: UiType.caption),
+                  Expanded(
+                    child: Text(
+                      'Zonas activas',
+                      style: UiText.of(context).caption,
+                    ),
                   ),
-                  Text('$activeZones / $totalZones', style: UiType.body),
+                  Text(
+                    '$activeZones / $totalZones',
+                    style: UiText.of(context).body,
+                  ),
                 ],
               ),
               const SizedBox(height: UiSpace.lg),
@@ -152,7 +159,7 @@ class EngineStatusPanel extends StatelessWidget {
                   simulated
                       ? 'Valores de demostración. No son mediciones del sistema.'
                       : 'No reportado indica que el protocolo no ofrece esa medición.',
-                  style: UiType.caption,
+                  style: UiText.of(context).caption,
                 ),
             ],
           ),
@@ -175,29 +182,29 @@ class _PerformanceMetric extends StatelessWidget {
     children: [
       Row(
         children: [
-          Expanded(child: Text(label, style: UiType.caption)),
-          Text(value, style: UiType.body),
+          Expanded(child: Text(label, style: UiText.of(context).caption)),
+          Text(value, style: UiText.of(context).body),
         ],
       ),
       const SizedBox(height: UiSpace.md),
       if (progress == null)
-        const SizedBox(
+        SizedBox(
           height: UiSpace.xs,
-          child: ColoredBox(color: UiColors.border),
+          child: ColoredBox(color: UiPalette.of(context).border),
         )
       else
         LinearProgressIndicator(
           value: progress,
           minHeight: UiSpace.xs,
           borderRadius: UiRadii.control,
-          color: UiColors.accent,
-          backgroundColor: UiColors.border,
+          color: UiPalette.of(context).accent,
+          backgroundColor: UiPalette.of(context).border,
           semanticsLabel: '$label: $value',
           semanticsValue: '${(progress! * 100).round()}%',
         ),
       if (description != null) ...[
         const SizedBox(height: UiSpace.sm),
-        Text(description!, style: UiType.caption),
+        Text(description!, style: UiText.of(context).caption),
       ],
     ],
   );

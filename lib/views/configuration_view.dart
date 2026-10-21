@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'design/ui_palette.dart';
 import 'package:flutter/services.dart';
 import '../controllers/engine_controller.dart';
 import '../models/engine_settings.dart';
@@ -212,9 +213,9 @@ class _ConfigurationViewState extends State<ConfigurationView> {
                           _backend == 'oto'
                               ? 'Todas las zonas se escuchan en la misma salida de Windows. Las rutas de Laravel deben ser compartidas: 1–2 en estéreo o 1 en mono.'
                               : 'Cada zona usa los canales asignados en Laravel. El driver debe estar instalado y admitir la frecuencia y el buffer seleccionados.',
-                          style: const TextStyle(
+                          style: TextStyle(
                             height: 1.5,
-                            color: Color(0xffb4bac5),
+                            color: UiPalette.of(context).muted,
                           ),
                         ),
                         const SizedBox(height: 22),

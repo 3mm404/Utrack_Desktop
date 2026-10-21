@@ -40,6 +40,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Abrir navegación'));
+    await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Inicio'));
     await tester.pumpAndSettle();
     expect(find.byType(ZoneMap), findsOneWidget);
@@ -47,13 +49,17 @@ void main() {
       tester.widget<UtrackHeader>(find.byType(UtrackHeader)).status,
       controller.statusLabel,
     );
-    await tester.tap(find.byTooltip('Abrir ajustes'));
+    await tester.tap(find.byTooltip('Abrir navegación'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Ajustes'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Iniciar motor'));
     await tester.tap(find.text('Iniciar motor'));
     await tester.pumpAndSettle();
     bridge.connected();
     await tester.pump();
+    await tester.tap(find.byTooltip('Abrir navegación'));
+    await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Inicio'));
     await tester.pumpAndSettle();
     expect(find.text('Terraza'), findsWidgets);
@@ -73,7 +79,9 @@ void main() {
     await tester.ensureVisible(find.text('Detener motor'));
     await tester.tap(find.text('Detener motor'));
     await tester.pumpAndSettle();
-    await tester.tap(find.byTooltip('Abrir ajustes'));
+    await tester.tap(find.byTooltip('Abrir navegación'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Ajustes'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Conecta tu equipo'));
     await tester.pumpAndSettle();

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
+import '../design/ui_palette.dart';
 import 'ui_controls.dart';
 import '../state/zone_preview_state.dart';
 
@@ -49,13 +50,13 @@ class _PlayerBarState extends State<PlayerBar> {
           children: [
             Text(
               _track.title,
-              style: UiType.title,
+              style: UiText.of(context).title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
             Text(
               '${_state.selected.name} · ${_track.artist}',
-              style: UiType.caption,
+              style: UiText.of(context).caption,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),
@@ -72,7 +73,7 @@ class _PlayerBarState extends State<PlayerBar> {
                   : _playing
                   ? 'Reproduciendo · simulado'
                   : 'En pausa · simulado',
-              style: UiType.caption,
+              style: UiText.of(context).caption,
             ),
           ],
         ),
@@ -163,7 +164,7 @@ class _PlayerBarState extends State<PlayerBar> {
         width: 36,
         child: Text(
           _state.hasSelection ? '${_volume.round()}%' : '—',
-          style: UiType.caption,
+          style: UiText.of(context).caption,
         ),
       ),
     ],
@@ -175,7 +176,7 @@ class _PlayerBarState extends State<PlayerBar> {
         !_state.isSimulated && _state.selected.positionMs == null
             ? '—'
             : _time(_position),
-        style: UiType.caption,
+        style: UiText.of(context).caption,
       ),
       Expanded(
         child: Slider(
@@ -194,7 +195,7 @@ class _PlayerBarState extends State<PlayerBar> {
       ),
       Text(
         _track.seconds == 0 ? '—' : _time(_track.seconds.toDouble()),
-        style: UiType.caption,
+        style: UiText.of(context).caption,
       ),
     ],
   );
@@ -203,9 +204,10 @@ class _PlayerBarState extends State<PlayerBar> {
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: _state,
     builder: (context, _) => DecoratedBox(
-      decoration: const BoxDecoration(
-        color: UiColors.surface,
-        border: Border(top: UiEffects.border),
+      decoration: BoxDecoration(
+        gradient: UiDecor.of(context).panelGradient,
+        boxShadow: UiDecor.of(context).cardShadow,
+        border: Border(top: UiDecor.of(context).border),
       ),
       child: Padding(
         padding: const EdgeInsets.all(UiSpace.lg),
@@ -247,7 +249,7 @@ class _PlayerBarState extends State<PlayerBar> {
                     _state.playbackPending || _state.volumePending
                         ? 'Esperando confirmación del motor…'
                         : 'Reproducción y volumen por zona desde Desktop · Asignaciones desde el servidor.',
-                    style: UiType.caption,
+                    style: UiText.of(context).caption,
                     textAlign: TextAlign.center,
                   ),
               ],
@@ -271,7 +273,7 @@ class _Cover extends StatelessWidget {
       width: 64,
       height: 64,
       decoration: BoxDecoration(
-        color: UiColors.input,
+        color: UiPalette.of(context).input,
         borderRadius: UiRadii.control,
         border: Border.all(color: color),
       ),
@@ -281,7 +283,7 @@ class _Cover extends StatelessWidget {
           height: 48,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: UiColors.elevated,
+            color: UiPalette.of(context).elevated,
             border: Border.all(color: color.withValues(alpha: .5), width: 3),
           ),
           child: Center(

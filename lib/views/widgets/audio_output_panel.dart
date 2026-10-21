@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
+import '../design/ui_palette.dart';
 import 'section_card.dart';
 import 'status_indicator.dart';
 import '../state/zone_preview_state.dart';
@@ -23,10 +24,10 @@ class AudioOutputPanel extends StatelessWidget {
       children: [
         const _DeviceImage(compact: true),
         const SizedBox(height: UiSpace.sm),
-        const Text('Ilustración de referencia', style: UiType.caption),
+        Text('Ilustración de referencia', style: UiText.of(context).caption),
         const SizedBox(height: UiSpace.md),
-        Text(state.device.name, style: UiType.title),
-        Text(state.device.backend, style: UiType.body),
+        Text(state.device.name, style: UiText.of(context).title),
+        Text(state.device.backend, style: UiText.of(context).body),
         _OutputDetail(label: 'Driver configurado', value: state.device.driver),
         _OutputDetail(
           label: 'Frecuencia',
@@ -64,10 +65,10 @@ class AudioOutputPanel extends StatelessWidget {
         const SizedBox(height: UiSpace.sm),
         Text(
           '${state.device.backend} · ${state.selected.channels}',
-          style: UiType.body,
+          style: UiText.of(context).body,
         ),
         const SizedBox(height: UiSpace.sm),
-        Text(state.device.driver, style: UiType.caption),
+        Text(state.device.driver, style: UiText.of(context).caption),
         const SizedBox(height: UiSpace.md),
         DropdownButtonFormField<int>(
           key: ValueKey(state.deviceIndex),
@@ -109,11 +110,11 @@ class AudioOutputPanel extends StatelessWidget {
               children: [
                 _DeviceImage(),
                 SizedBox(height: UiSpace.lg),
-                Text(state.device.name, style: UiType.title),
+                Text(state.device.name, style: UiText.of(context).title),
                 SizedBox(height: UiSpace.sm),
                 Text(
                   '${state.device.backend} · ${state.selected.channels}',
-                  style: UiType.body,
+                  style: UiText.of(context).body,
                 ),
                 SizedBox(height: UiSpace.lg),
                 StatusIndicator(
@@ -163,7 +164,7 @@ class AudioOutputPanel extends StatelessWidget {
                 if (!compact)
                   Text(
                     'Vista de prueba. No detecta ni modifica el hardware del equipo.',
-                    style: UiType.caption,
+                    style: UiText.of(context).caption,
                   ),
               ],
             ),
@@ -176,10 +177,10 @@ class _DeviceImage extends StatelessWidget {
   final bool compact;
   @override
   Widget build(BuildContext context) => DecoratedBox(
-    decoration: const BoxDecoration(
-      color: UiColors.input,
+    decoration: BoxDecoration(
+      color: UiPalette.of(context).input,
       borderRadius: UiRadii.control,
-      border: Border.fromBorderSide(UiEffects.border),
+      border: Border.fromBorderSide(UiDecor.of(context).border),
     ),
     child: ClipRRect(
       borderRadius: UiRadii.control,
@@ -189,10 +190,10 @@ class _DeviceImage extends StatelessWidget {
           'assets/images/audio_interface.png',
           fit: BoxFit.contain,
           semanticLabel: 'Ilustración de una interfaz de audio USB de ejemplo',
-          errorBuilder: (context, error, stack) => const Center(
+          errorBuilder: (context, error, stack) => Center(
             child: Text(
               'Imagen del dispositivo no disponible',
-              style: UiType.caption,
+              style: UiText.of(context).caption,
             ),
           ),
         ),
@@ -210,9 +211,9 @@ class _OutputDetail extends StatelessWidget {
     child: Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: UiType.caption),
+        Text(label, style: UiText.of(context).caption),
         const SizedBox(height: UiSpace.xs),
-        Text(value, style: UiType.body),
+        Text(value, style: UiText.of(context).body),
       ],
     ),
   );

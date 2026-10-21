@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
+import '../design/ui_palette.dart';
 import '../widgets/section_card.dart';
 import '../widgets/zone_map.dart';
 import '../widgets/player_bar.dart';
@@ -48,6 +49,7 @@ class _UtrackShellState extends State<UtrackShell> {
     super.dispose();
   }
 
+  final _scaffoldKey = GlobalKey<ScaffoldState>();
   int _selected = 0;
   void _select(int index) => setState(() => _selected = index);
   void _search(String query) {
@@ -75,7 +77,7 @@ class _UtrackShellState extends State<UtrackShell> {
             child: Text(
               detail,
               textAlign: TextAlign.center,
-              style: UiType.caption,
+              style: UiText.of(context).caption,
             ),
           ),
         ),
@@ -182,44 +184,70 @@ class _UtrackShellState extends State<UtrackShell> {
     listenable: _zoneState,
     builder: (context, _) => LayoutBuilder(
       builder: (context, constraints) {
-        final compact = constraints.maxWidth < 600;
         return Scaffold(
-          bottomNavigationBar: compact
-              ? NavigationBar(
-                  selectedIndex: _selected,
-                  onDestinationSelected: _select,
-                  destinations: [
-                    for (var i = 0; i < shellLabels.length; i++)
-                      NavigationDestination(
-                        icon: Icon(shellIcons[i]),
-                        label: shellLabels[i],
-                      ),
-                  ],
-                )
-              : null,
+          key: _scaffoldKey,
+          endDrawer: Drawer(
+            width: 276,
+            backgroundColor: UiPalette.of(context).surface,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.horizontal(left: Radius.circular(24)),
+            ),
+            child: SafeArea(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(20, 12, 8, 0),
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            'Navegación',
+                            style: UiText.of(context).title,
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: 'Cerrar navegación',
+                          onPressed: () =>
+                              _scaffoldKey.currentState?.closeEndDrawer(),
+                          icon: const Icon(Icons.close),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: UtrackSidebar(
+                      selected: _selected,
+                      onSelected: (index) {
+                        _select(index);
+                        _scaffoldKey.currentState?.closeEndDrawer();
+                      },
+                      status: _zoneState.status,
+                      connected: _zoneState.connected,
+                      expanded: true,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          drawerScrimColor: UiPalette.of(
+            context,
+          ).background.withValues(alpha: .42),
           body: SafeArea(
             child: Row(
               children: [
-                if (!compact)
-                  UtrackSidebar(
-                    selected: _selected,
-                    onSelected: _select,
-                    status: _zoneState.status,
-                    connected: _zoneState.connected,
-                    expanded: constraints.maxWidth >= 1000,
-                  ),
                 Expanded(
                   child: Column(
                     children: [
                       Container(
                         width: double.infinity,
-                        color: UiColors.elevated,
+                        color: UiPalette.of(context).elevated,
                         padding: const EdgeInsets.all(UiSpace.sm),
                         child: Text(
                           widget.testMode
                               ? 'MODO TEST · Datos simulados, sin audio real'
                               : 'MOTOR LOCAL · Zonas reales y reproducción desde Desktop.',
-                          style: UiType.caption,
+                          style: UiText.of(context).caption,
                           textAlign: TextAlign.center,
                         ),
                       ),
@@ -227,7 +255,8 @@ class _UtrackShellState extends State<UtrackShell> {
                         title: shellLabels[_selected],
                         status: _zoneState.status,
                         connected: _zoneState.connected,
-                        onSettings: () => _select(4),
+                        onSettings: () =>
+                            _scaffoldKey.currentState?.openEndDrawer(),
                         onSearch: _search,
                       ),
                       if (_zoneState.error.isNotEmpty)
@@ -239,8 +268,8 @@ class _UtrackShellState extends State<UtrackShell> {
                             liveRegion: true,
                             child: Text(
                               _zoneState.error,
-                              style: UiType.body.copyWith(
-                                color: UiColors.error,
+                              style: UiText.of(context).body.copyWith(
+                                color: UiPalette.of(context).error,
                               ),
                             ),
                           ),
@@ -281,9 +310,9 @@ class _UtrackShellState extends State<UtrackShell> {
                                 ),
                               ),
                               if (!_zoneState.fresh && _zoneState.hasSelection)
-                                const Text(
+                                Text(
                                   'Último estado recibido · sin actualización',
-                                  style: UiType.caption,
+                                  style: UiText.of(context).caption,
                                 ),
                             ],
                           ),

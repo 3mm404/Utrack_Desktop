@@ -1,87 +1,94 @@
 import 'package:flutter/material.dart';
 import 'ui_tokens.dart';
+import 'ui_palette.dart';
 
 abstract final class UiTheme {
-  static ThemeData get dark {
-    const shape = RoundedRectangleBorder(borderRadius: UiRadii.control);
-    const inputBorder = OutlineInputBorder(
+  static ThemeData get dark => _build(Brightness.dark);
+  static ThemeData get light => _build(Brightness.light);
+  static ThemeData _build(Brightness brightness) {
+    final palette = brightness == Brightness.light
+        ? UiPalette.light
+        : UiPalette.dark;
+    final typography = UiText(palette);
+    final effects = UiDecor(palette);
+    final shape = RoundedRectangleBorder(borderRadius: UiRadii.control);
+    final inputBorder = OutlineInputBorder(
       borderRadius: UiRadii.control,
-      borderSide: UiEffects.border,
+      borderSide: effects.border,
     );
     final colors =
         ColorScheme.fromSeed(
-          seedColor: UiColors.accent,
-          brightness: Brightness.dark,
+          seedColor: palette.accent,
+          brightness: brightness,
         ).copyWith(
-          primary: UiColors.accent,
-          onPrimary: UiColors.onAccent,
-          secondary: UiColors.accent,
-          onSecondary: UiColors.onAccent,
-          surface: UiColors.surface,
-          onSurface: UiColors.text,
-          onSurfaceVariant: UiColors.muted,
-          outline: UiColors.border,
-          error: UiColors.error,
+          primary: palette.accent,
+          onPrimary: palette.onAccent,
+          secondary: palette.blue,
+          onSecondary: palette.onAccent,
+          surface: palette.surface,
+          onSurface: palette.text,
+          onSurfaceVariant: palette.muted,
+          outline: palette.border,
+          error: palette.error,
         );
     return ThemeData(
       useMaterial3: true,
-      brightness: Brightness.dark,
+      brightness: brightness,
       colorScheme: colors,
-      scaffoldBackgroundColor: UiColors.background,
-      textTheme: const TextTheme(
-        headlineSmall: UiType.heading,
-        titleLarge: UiType.title,
-        bodyLarge: UiType.body,
-        bodyMedium: UiType.body,
-        bodySmall: UiType.caption,
-        labelLarge: UiType.label,
+      scaffoldBackgroundColor: palette.background,
+      textTheme: TextTheme(
+        headlineSmall: typography.heading,
+        titleLarge: typography.title,
+        bodyLarge: typography.body,
+        bodyMedium: typography.body,
+        bodySmall: typography.caption,
+        labelLarge: typography.label,
       ),
-      dividerTheme: const DividerThemeData(
-        color: UiColors.border,
-        thickness: 1,
-      ),
-      cardTheme: const CardThemeData(
-        color: UiColors.surface,
+      dividerTheme: DividerThemeData(color: palette.border, thickness: 1),
+      cardTheme: CardThemeData(
+        color: palette.surface,
         surfaceTintColor: Colors.transparent,
         margin: EdgeInsets.zero,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: UiRadii.card,
-          side: UiEffects.border,
+          side: effects.border,
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: UiColors.input,
+        fillColor: palette.input,
         border: inputBorder,
         enabledBorder: inputBorder,
         focusedBorder: inputBorder.copyWith(
-          borderSide: const BorderSide(color: UiColors.accent, width: 2),
+          borderSide: BorderSide(color: palette.accent, width: 2),
         ),
         errorBorder: inputBorder.copyWith(
-          borderSide: const BorderSide(color: UiColors.error),
+          borderSide: BorderSide(color: palette.error),
         ),
-        contentPadding: const EdgeInsets.all(UiSpace.lg),
-        labelStyle: UiType.body.copyWith(color: UiColors.muted),
+        contentPadding: EdgeInsets.all(UiSpace.lg),
+        labelStyle: typography.body.copyWith(color: palette.muted),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          minimumSize: const Size(48, 48),
+          elevation: 5,
+          shadowColor: palette.accent.withValues(alpha: .4),
+          minimumSize: Size(48, 48),
           shape: shape,
-          padding: const EdgeInsets.symmetric(
+          padding: EdgeInsets.symmetric(
             horizontal: UiSpace.xl,
             vertical: UiSpace.md,
           ),
-          textStyle: UiType.label,
+          textStyle: typography.label,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: const Size(48, 48),
+          minimumSize: Size(48, 48),
           shape: shape,
-          side: UiEffects.border,
-          textStyle: UiType.label,
-          padding: const EdgeInsets.symmetric(
+          side: effects.border,
+          textStyle: typography.label,
+          padding: EdgeInsets.symmetric(
             horizontal: UiSpace.xl,
             vertical: UiSpace.md,
           ),
@@ -89,23 +96,20 @@ abstract final class UiTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          minimumSize: const Size(48, 48),
+          minimumSize: Size(48, 48),
           shape: shape,
-          textStyle: UiType.label,
+          textStyle: typography.label,
         ),
       ),
       iconButtonTheme: IconButtonThemeData(
-        style: IconButton.styleFrom(
-          minimumSize: const Size(48, 48),
-          shape: shape,
-        ),
+        style: IconButton.styleFrom(minimumSize: Size(48, 48), shape: shape),
       ),
       tooltipTheme: TooltipThemeData(
-        textStyle: UiType.caption.copyWith(color: UiColors.text),
-        decoration: const BoxDecoration(
-          color: UiColors.elevated,
+        textStyle: typography.caption.copyWith(color: palette.text),
+        decoration: BoxDecoration(
+          color: palette.elevated,
           borderRadius: UiRadii.control,
-          border: Border.fromBorderSide(UiEffects.border),
+          border: Border.fromBorderSide(effects.border),
         ),
       ),
     );

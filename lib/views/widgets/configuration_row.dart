@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
+import '../design/ui_palette.dart';
 
 class ConfigurationRow extends StatelessWidget {
   const ConfigurationRow({
@@ -20,10 +21,10 @@ class ConfigurationRow extends StatelessWidget {
         final text = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: UiType.body),
+            Text(label, style: UiText.of(context).body),
             if (description != null) ...[
               const SizedBox(height: UiSpace.xs),
-              Text(description!, style: UiType.caption),
+              Text(description!, style: UiText.of(context).caption),
             ],
           ],
         );

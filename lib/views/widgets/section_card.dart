@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
+import 'liquid_card.dart';
 import 'panel_header.dart';
 
 class SectionCard extends StatelessWidget {
@@ -18,23 +19,7 @@ class SectionCard extends StatelessWidget {
   final Widget? trailing;
 
   @override
-  Widget build(BuildContext context) => Container(
-    decoration: const BoxDecoration(
-      borderRadius: UiRadii.card,
-      border: Border.fromBorderSide(UiEffects.border),
-      gradient: LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [Color(0xff1a2435), Color(0xff101828)],
-      ),
-      boxShadow: [
-        BoxShadow(
-          color: Color(0x30000000),
-          blurRadius: 16,
-          offset: Offset(0, 5),
-        ),
-      ],
-    ),
+  Widget build(BuildContext context) => LiquidCard(
     child: Padding(
       padding: EdgeInsets.all(compact ? UiSpace.lg : UiSpace.xl),
       child: Column(

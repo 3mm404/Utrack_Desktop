@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
+import '../design/ui_palette.dart';
 
 enum UiStatus { inactive, operational, warning, error }
 
@@ -17,10 +18,10 @@ class StatusIndicator extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final color = switch (status) {
-      UiStatus.inactive => UiColors.muted,
-      UiStatus.operational => UiColors.operational,
-      UiStatus.warning => UiColors.warning,
-      UiStatus.error => UiColors.error,
+      UiStatus.inactive => UiPalette.of(context).muted,
+      UiStatus.operational => UiPalette.of(context).operational,
+      UiStatus.warning => UiPalette.of(context).warning,
+      UiStatus.error => UiPalette.of(context).error,
     };
     return Semantics(
       label: label,
@@ -33,7 +34,7 @@ class StatusIndicator extends StatelessWidget {
               Icon(Icons.circle, size: UiSpace.sm, color: color),
               if (showLabel) ...[
                 const SizedBox(width: UiSpace.sm),
-                Flexible(child: Text(label, style: UiType.caption)),
+                Flexible(child: Text(label, style: UiText.of(context).caption)),
               ],
             ],
           ),
