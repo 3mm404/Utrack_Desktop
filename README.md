@@ -1,6 +1,8 @@
-# UTRACK Desktop
+# UTRACK Desktop 1.1.0
 
 Interfaz Flutter para el motor local de audio. En producción muestra las zonas y los estados reportados por el motor, sin habitaciones, canciones, dispositivos ni métricas de ejemplo. El plano y la fotografía de equipo son ilustrativos.
+
+Esta entrega incluye Engine **0.8.8**, con reproducción de MP3 MPEG-1/2/2.5 en sus nueve frecuencias estándar, incluidas 44.1 y 48 kHz. El motor remuestrea en memoria sin FFmpeg y conserva el archivo original. La versión requerida está en `windows/engine/VERSION`; `build-windows.ps1` la comprueba al empaquetar.
 
 ## Uso de producción en Windows
 

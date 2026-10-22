@@ -58,3 +58,5 @@ build/
 # Local release artifacts
 Releases/
 *.zip
+# Generated distributable directories.
+/Utrack-v*-Windows/

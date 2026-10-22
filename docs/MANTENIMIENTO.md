@@ -6,7 +6,7 @@ Esta guía describe tareas futuras y comandos de trabajo; no instala un actualiz
 
 ## 1. Entorno reproducible
 
-La resolución local inspeccionada registra Flutter 3.47.7 y Dart 3.13.5; `pubspec.yaml` permite Dart `^3.12.1` y la app declara `0.1.0+1`. Estas cifras describen el entorno usado, no un compromiso de soporte. Falta fijar y registrar la versión exacta de SDK en CI/equipo.
+La resolución local inspeccionada registra Flutter 3.47.7 y Dart 3.13.5; `pubspec.yaml` permite Dart `^3.12.1` y la app declara `1.1.0+2`. Estas cifras describen el entorno usado, no un compromiso de soporte. Falta fijar y registrar la versión exacta de SDK en CI/equipo.
 
 Mantener `pubspec.lock` en control de versiones y registrar versiones de Flutter, herramientas nativas y motor en cada release. `.dart_tool` se regenera. Antes de desarrollar:
 
@@ -64,7 +64,7 @@ Se requieren herramientas nativas de Visual Studio para desarrollo desktop, adem
 
 `windows/CMakeLists.txt` copia obligatoriamente `windows/engine/engine.exe`; el binario está preparado localmente y está ignorado por Git. Esto también afecta un build Flutter con modo test: la bandera cambia la ejecución, no elimina esa regla CMake.
 
-`build-windows.ps1` compila el motor desde el repositorio hermano `../music-engine` mediante Go y luego llama `flutter build windows --release`. No se ejecutó ni modificó ese script. Para esta entrega se reutiliza el motor 0.8.0 existente (protocolo 1), sin recompilar Go. Registrar y validar la versión al sustituirlo.
+`build-windows.ps1` compila el motor desde `../music-engine`, verifica su versión contra `windows/engine/VERSION` y compila Flutter en modo producción. Desktop 1.1.0+2 requiere Engine 0.8.8 (protocolo 1), con remuestreo de frecuencias MP3 en memoria. Para esta entrega se recompilaron el motor y Desktop; el ejecutable del motor se verifica también dentro del directorio Release.
 
 Con un binario compatible ya preparado por el responsable del motor:
 

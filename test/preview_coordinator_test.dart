@@ -47,6 +47,8 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Abrir navegación'));
+    await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Dispositivos'));
     await tester.pumpAndSettle();
     final stop = find.text('Detener motor simulado');
