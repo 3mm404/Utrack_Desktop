@@ -51,11 +51,11 @@ class UiPalette {
   static const light = UiPalette(
     background: Color(0xffffffff),
     surface: Color(0xffffffff),
-    elevated: Color(0xffe4efff),
-    input: Color(0xfff0f5fc),
-    border: Color(0xffb9cce4),
+    elevated: Color(0xffedf1fa),
+    input: Color(0xfff2f4f8),
+    border: Color(0xffdce1eb),
     text: Color(0xff101828),
-    muted: Color(0xff405a78),
+    muted: Color(0xff667084),
     accent: Color(0xffcf430b),
     onAccent: Color(0xffffffff),
     operational: Color(0xff09754b),
@@ -89,26 +89,26 @@ class UiDecor {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: isLight
-        ? const [Color(0xffffffff), Color(0xfff0f5fc)]
-        : const [Color(0xff2b435f), Color(0xff192b40)],
+        ? const [Color(0xfffefefe), Color(0xfff4f6fa)]
+        : const [Color(0xff252e35), Color(0xff151b23)],
   );
   SweepGradient get metalGradient => SweepGradient(
     colors: isLight
         ? const [
-            Color(0xffa8bad0),
+            Color(0xffa8adb2),
             Color(0xffffffff),
-            Color(0xffd4e0ed),
-            Color(0xff93abc5),
-            Color(0xffedf5ff),
-            Color(0xffa8bad0),
+            Color(0xffd4d8dc),
+            Color(0xff8c9399),
+            Color(0xffeff1f3),
+            Color(0xffa8adb2),
           ]
         : const [
-            Color(0xff132337),
-            Color(0xff6084a5),
-            Color(0xff293e56),
-            Color(0xff0e1b2d),
-            Color(0xff4d6c8b),
-            Color(0xff132337),
+            Color(0xff22272c),
+            Color(0xff879197),
+            Color(0xff454d53),
+            Color(0xff191e24),
+            Color(0xff707b82),
+            Color(0xff22272c),
           ],
   );
   List<BoxShadow> get cardShadow => [

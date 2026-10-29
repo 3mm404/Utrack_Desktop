@@ -1,5 +1,6 @@
 import 'package:utrack_v1/views/layout/utrack_header.dart';
 import 'package:utrack_v1/views/widgets/zone_map.dart';
+import 'package:utrack_v1/views/widgets/zone_cards.dart';
 import 'dart:io';
 import 'dart:ui' as ui;
 import 'package:flutter/material.dart';
@@ -40,11 +41,16 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    expect(find.text('Tus zonas'), findsOneWidget);
     await tester.tap(find.byTooltip('Abrir navegación'));
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Inicio'));
     await tester.pumpAndSettle();
-    expect(find.byType(ZoneMap), findsOneWidget);
+    expect(find.byType(ZoneMap), findsNothing);
+    expect(find.byType(ZoneCards), findsOneWidget);
+    expect(bridge.starts, 1);
+    expect(find.textContaining('MOTOR LOCAL'), findsNothing);
+    expect(find.text('Buscar sección…'), findsNothing);
     expect(
       tester.widget<UtrackHeader>(find.byType(UtrackHeader)).status,
       controller.statusLabel,
@@ -53,10 +59,13 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Ajustes'));
     await tester.pumpAndSettle();
-    await tester.ensureVisible(find.text('Iniciar motor'));
-    await tester.tap(find.text('Iniciar motor'));
-    await tester.pumpAndSettle();
-    bridge.connected();
+    bridge.connected(
+      performance: {
+        'cpu_percent': 3.5,
+        'heap_bytes': 20971520,
+        'uptime_seconds': 120,
+      },
+    );
     await tester.pump();
     await tester.tap(find.byTooltip('Abrir navegación'));
     await tester.pumpAndSettle();
@@ -64,6 +73,18 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Terraza'), findsWidgets);
     expect(find.text('Reproduciendo'), findsWidgets);
+    expect(find.text('3.5% CPU'), findsNothing);
+    await tester.tap(find.byTooltip('Abrir navegación'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Dispositivos'));
+    await tester.pumpAndSettle();
+    expect(find.text('3.5% CPU'), findsWidgets);
+    expect(find.text('Memoria Go · 20.0 MB'), findsOneWidget);
+    expect(find.text('Conectividad'), findsOneWidget);
+    await tester.tap(find.byTooltip('Abrir navegación'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byTooltip('Inicio'));
+    await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     final boundary =
         preview.currentContext!.findRenderObject() as RenderRepaintBoundary;
@@ -76,12 +97,12 @@ void main() {
       ).writeAsBytes(bytes!.buffer.asUint8List());
       image.dispose();
     });
-    await tester.ensureVisible(find.text('Detener motor'));
-    await tester.tap(find.text('Detener motor'));
-    await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Abrir navegación'));
     await tester.pumpAndSettle();
     await tester.tap(find.byTooltip('Ajustes'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Detener para configurar'));
+    await tester.tap(find.text('Detener para configurar'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Conecta tu equipo'));
     await tester.pumpAndSettle();
@@ -104,7 +125,7 @@ void main() {
       MainApp(controller: EngineController(FakeEngineBridge())),
     );
     await tester.pumpAndSettle();
-    await tester.tap(find.byIcon(Icons.tune).first);
+    await tester.tap(find.byTooltip('Abrir navegación'));
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
     await tester.pumpWidget(const SizedBox());

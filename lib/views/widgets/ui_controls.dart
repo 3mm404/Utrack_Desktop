@@ -11,21 +11,19 @@ class UiIconControl extends StatelessWidget {
     required this.onPressed,
     this.selected = false,
     this.circular = false,
+    this.size = 40,
   });
   final IconData icon;
   final String label;
   final VoidCallback? onPressed;
   final bool selected, circular;
+  final double size;
 
   @override
   Widget build(BuildContext context) => DecoratedBox(
     decoration: BoxDecoration(
       shape: circular ? BoxShape.circle : BoxShape.rectangle,
       borderRadius: circular ? null : UiRadii.control,
-      gradient: circular || selected ? UiDecor.of(context).panelGradient : null,
-      boxShadow: (circular || selected) && onPressed != null
-          ? UiDecor.of(context).controlShadow
-          : null,
     ),
     child: IconButton(
       tooltip: label,
@@ -34,6 +32,8 @@ class UiIconControl extends StatelessWidget {
       icon: Icon(icon),
       selectedIcon: Icon(icon, color: UiPalette.of(context).accent),
       style: IconButton.styleFrom(
+        minimumSize: Size.square(size),
+        iconSize: size >= 48 ? 26 : 20,
         foregroundColor: UiPalette.of(context).muted,
         disabledForegroundColor: UiPalette.of(
           context,
@@ -41,7 +41,11 @@ class UiIconControl extends StatelessWidget {
         backgroundColor: selected
             ? UiPalette.of(context).elevated
             : Colors.transparent,
-        side: circular ? UiDecor.of(context).border : BorderSide.none,
+        side: circular
+            ? BorderSide(
+                color: UiPalette.of(context).border.withValues(alpha: .35),
+              )
+            : BorderSide.none,
         shape: circular
             ? const CircleBorder()
             : const RoundedRectangleBorder(borderRadius: UiRadii.control),
@@ -70,6 +74,7 @@ class CircularControl extends StatelessWidget {
     onPressed: onPressed,
     selected: selected,
     circular: true,
+    size: 48,
   );
 }
 

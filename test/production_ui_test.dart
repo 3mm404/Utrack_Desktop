@@ -2,12 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:utrack_v1/controllers/engine_controller.dart';
 import 'package:utrack_v1/main.dart';
-import 'package:utrack_v1/views/layout/utrack_sidebar.dart';
 import 'package:utrack_v1/views/layout/utrack_header.dart';
 import 'package:utrack_v1/views/state/engine_view_state.dart';
 import 'package:utrack_v1/views/widgets/player_bar.dart';
 import 'package:utrack_v1/views/widgets/ui_controls.dart';
-import 'package:utrack_v1/views/widgets/volume_knob.dart';
 import 'fake_engine_bridge.dart';
 
 void main() {
@@ -41,7 +39,8 @@ void main() {
         find.byType(TextFormField).at(1),
       );
       expect(tokenField.controller!.text, isEmpty);
-      await tester.tap(find.text('Iniciar motor'));
+      await tester.ensureVisible(find.text('Guardar y conectar'));
+      await tester.tap(find.text('Guardar y conectar'));
       await tester.pumpAndSettle();
       bridge.connected();
       await tester.pumpAndSettle();
@@ -50,10 +49,11 @@ void main() {
       await tester.tap(find.byTooltip('Inicio'));
       await tester.pumpAndSettle();
       expect(find.textContaining('Canción 5'), findsWidgets);
-      expect(find.textContaining('No reportad'), findsWidgets);
       expect(
-        tester.widget<VolumeKnob>(find.byType(VolumeKnob)).onChanged,
-        isNull,
+        tester
+            .widgetList<Slider>(find.byType(Slider))
+            .every((slider) => slider.onChanged == null),
+        isTrue,
       );
       for (final control in tester.widgetList<UiIconControl>(
         find.byType(UiIconControl),
@@ -69,10 +69,7 @@ void main() {
       }
       await tester.tap(find.byTooltip('Abrir navegación'));
       await tester.pumpAndSettle();
-      final refreshSidebar = tester.widget<UtrackSidebar>(
-        find.byType(UtrackSidebar, skipOffstage: false),
-      );
-      expect(refreshSidebar.connected, isTrue);
+      expect(find.byType(Drawer), findsNothing);
       expect(
         tester.widget<UtrackHeader>(find.byType(UtrackHeader)).connected,
         isTrue,

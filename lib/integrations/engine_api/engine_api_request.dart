@@ -6,6 +6,8 @@ class EngineApiRequest {
     required this.operation,
     required this.zoneId,
     this.songId,
+    this.playlistId,
+    this.preference,
     this.volume,
     this.positionMs,
     this.shuffle,
@@ -15,6 +17,8 @@ class EngineApiRequest {
   final EngineOperation operation;
   final String zoneId;
   final String? songId;
+  final String? playlistId;
+  final String? preference;
   final int? volume;
   final int? positionMs;
   final bool? shuffle, continuousPlayback;
@@ -22,6 +26,22 @@ class EngineApiRequest {
 
   String? validate() {
     if (zoneId.isEmpty) return 'Selecciona una zona.';
+    if (operation == EngineOperation.songPreference) {
+      if (songId == null ||
+          songId!.isEmpty ||
+          !['like', 'dislike', 'neutral'].contains(preference)) {
+        return 'Indica una canción y una preferencia válida.';
+      }
+    } else if (preference != null) {
+      return 'Esta operación no admite preferencias.';
+    }
+    if (operation == EngineOperation.playPlaylist) {
+      if (playlistId == null || playlistId!.isEmpty) {
+        return 'Selecciona una playlist.';
+      }
+    } else if (playlistId != null) {
+      return 'Esta operación no admite playlist.';
+    }
     if (operation == EngineOperation.seek) {
       if (positionMs == null || positionMs! < 0) {
         return 'Indica una posición válida.';
@@ -65,6 +85,8 @@ class EngineApiRequest {
       'config_revision': revision,
       'action': operation.wireName,
       'song_id': ?songId,
+      'playlist_id': ?playlistId,
+      'preference': ?preference,
       'volume': ?volume,
       'position_ms': ?positionMs,
       'shuffle': ?shuffle,

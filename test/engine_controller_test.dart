@@ -4,6 +4,45 @@ import 'package:utrack_v1/models/engine_settings.dart';
 import 'fake_engine_bridge.dart';
 
 void main() {
+  test('connects automatically using saved settings only once', () async {
+    final bridge = FakeEngineBridge();
+    final controller = EngineController(bridge);
+    addTearDown(controller.dispose);
+    await controller.initialize(autoStart: true);
+    expect(bridge.starts, 1);
+    expect(controller.running, isTrue);
+    await controller.initialize(autoStart: true);
+    expect(bridge.starts, 1);
+  });
+
+  test(
+    'does not automatically start an unconfigured or externally running engine',
+    () async {
+      for (final bridge in [
+        FakeEngineBridge()..configured = false,
+        FakeEngineBridge()..externalRunning = true,
+      ]) {
+        final controller = EngineController(bridge);
+        await controller.initialize(autoStart: true);
+        expect(bridge.starts, 0);
+        controller.dispose();
+      }
+    },
+  );
+
+  test(
+    'reports an automatic connection failure without restarting repeatedly',
+    () async {
+      final bridge = FakeEngineBridge();
+      final controller = EngineController(bridge);
+      addTearDown(controller.dispose);
+      bridge.failure = StateError('No se pudo iniciar el engine');
+      await controller.initialize(autoStart: true);
+      expect(bridge.starts, 0);
+      expect(controller.running, isFalse);
+      expect(controller.error, contains('No se pudo iniciar'));
+    },
+  );
   test(
     'keeps an actionable credential error after the process exits',
     () async {

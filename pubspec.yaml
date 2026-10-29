@@ -18,6 +18,8 @@ dev_dependencies:
 flutter:
   uses-material-design: true
   assets:
+    - assets/branding/utrack-symbol-transparent.png
+
     - assets/images/zone_floor_plan.png
     - assets/images/zone_floor_plan_v2.png
     - assets/images/audio_interface.png

@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
-import 'liquid_card.dart';
+import 'app_surface.dart';
 import 'panel_header.dart';
 
 class SectionCard extends StatelessWidget {
@@ -19,7 +19,7 @@ class SectionCard extends StatelessWidget {
   final Widget? trailing;
 
   @override
-  Widget build(BuildContext context) => LiquidCard(
+  Widget build(BuildContext context) => AppCard(
     child: Padding(
       padding: EdgeInsets.all(compact ? UiSpace.lg : UiSpace.xl),
       child: Column(

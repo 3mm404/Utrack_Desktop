@@ -16,6 +16,10 @@ class ZoneStatus {
     this.shuffle = false,
     this.repeatMode = '',
     this.continuousPlayback = false,
+    this.coverPath,
+    this.backgroundPath,
+    this.playlistId,
+    this.songPreferences = const {},
   });
 
   final String id, name, state, playlist, mode;
@@ -28,6 +32,10 @@ class ZoneStatus {
   final Map<String, SongMetadata> songMetadata;
   final bool shuffle, continuousPlayback;
   final String repeatMode;
+  final String? coverPath;
+  final String? backgroundPath;
+  final String? playlistId;
+  final Map<String, String> songPreferences;
 
   factory ZoneStatus.fromJson(
     Map<String, dynamic> json,
@@ -40,6 +48,12 @@ class ZoneStatus {
       state: json['state'] as String? ?? 'unknown',
       volume: json['volume'] as int? ?? 0,
       playlist: info['playlist'] as String? ?? '',
+      coverPath: info['cover_path'] as String?,
+      backgroundPath: info['background_path'] as String?,
+      playlistId: info['playlist_id'] as String?,
+      songPreferences: (info['song_preferences'] as Map? ?? {}).map(
+        (key, value) => MapEntry(key.toString(), value.toString()),
+      ),
       mode: json['channel_mode'] as String? ?? '',
       channels: (output?['channels'] as List? ?? []).cast<int>(),
       songId: json['song_id']?.toString(),
@@ -50,6 +64,7 @@ class ZoneStatus {
             song['song_id'] as String: SongMetadata(
               title: song['title'] as String? ?? '',
               artist: song['artist'] as String?,
+              coverPath: song['cover_path'] as String?,
             ),
       },
       shuffle: info['shuffle'] as bool? ?? false,
@@ -77,13 +92,40 @@ class ZoneStatus {
 }
 
 class SongMetadata {
-  const SongMetadata({required this.title, this.artist});
+  const SongMetadata({required this.title, this.artist, this.coverPath});
   final String title;
   final String? artist;
+  final String? coverPath;
 }
 
 class ActivityEntry {
   ActivityEntry(this.message) : time = DateTime.now();
   final String message;
   final DateTime time;
+}
+
+class PlaylistInfo {
+  const PlaylistInfo({
+    required this.id,
+    required this.name,
+    this.coverPath,
+    this.songs = const {},
+  });
+  final String id, name;
+  final String? coverPath;
+  final Map<String, SongMetadata> songs;
+
+  factory PlaylistInfo.fromJson(Map<String, dynamic> json) => PlaylistInfo(
+    id: json['playlist_id'].toString(),
+    name: json['name'] as String? ?? 'Playlist',
+    coverPath: json['cover_path'] as String?,
+    songs: {
+      for (final song in (json['songs'] as List? ?? []).whereType<Map>())
+        song['song_id'].toString(): SongMetadata(
+          title: song['title'] as String? ?? '',
+          artist: song['artist'] as String?,
+          coverPath: song['cover_path'] as String?,
+        ),
+    },
+  );
 }

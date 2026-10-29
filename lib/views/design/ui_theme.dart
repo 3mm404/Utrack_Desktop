@@ -71,21 +71,17 @@ abstract final class UiTheme {
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          elevation: 5,
-          shadowColor: palette.accent.withValues(alpha: .4),
-          minimumSize: Size(48, 48),
-          shape: shape,
-          padding: EdgeInsets.symmetric(
-            horizontal: UiSpace.xl,
-            vertical: UiSpace.md,
-          ),
+          elevation: 0,
+          minimumSize: Size(40, 40),
+          shape: const StadiumBorder(),
+          padding: EdgeInsets.symmetric(horizontal: 18, vertical: 10),
           textStyle: typography.label,
         ),
       ),
       outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
-          minimumSize: Size(48, 48),
-          shape: shape,
+          minimumSize: Size(40, 40),
+          shape: const StadiumBorder(),
           side: effects.border,
           textStyle: typography.label,
           padding: EdgeInsets.symmetric(
@@ -96,13 +92,17 @@ abstract final class UiTheme {
       ),
       textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-          minimumSize: Size(48, 48),
+          minimumSize: Size(40, 40),
           shape: shape,
           textStyle: typography.label,
         ),
       ),
       iconButtonTheme: IconButtonThemeData(
-        style: IconButton.styleFrom(minimumSize: Size(48, 48), shape: shape),
+        style: IconButton.styleFrom(
+          minimumSize: Size(40, 40),
+          iconSize: 20,
+          shape: shape,
+        ),
       ),
       tooltipTheme: TooltipThemeData(
         textStyle: typography.caption.copyWith(color: palette.text),

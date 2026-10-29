@@ -45,6 +45,8 @@ class FakeEngineBridge implements EngineBridge, PlaybackEngineBridge {
         'playlist_read',
         'seek',
         'playback_modes',
+        'play_playlist',
+        'song_preference',
       ],
     'version': '0.8.0',
     'configured': configured,
@@ -78,7 +80,10 @@ class FakeEngineBridge implements EngineBridge, PlaybackEngineBridge {
     await stream.close();
   }
 
-  void connected({String state = 'playing'}) {
+  void connected({
+    String state = 'playing',
+    Map<String, dynamic>? performance,
+  }) {
     stream.add({'type': 'connection', 'channel': 'sync', 'connected': true});
     stream.add({
       'type': 'connection',
@@ -87,6 +92,8 @@ class FakeEngineBridge implements EngineBridge, PlaybackEngineBridge {
     });
     stream.add({
       'type': 'status',
+      'server_control': true,
+      'performance': ?performance,
       'report': {
         'applied_config_revision': 3,
         'zones': [

@@ -70,8 +70,7 @@ void main() {
       final controller = EngineController(bridge);
       await tester.pumpWidget(MainApp(controller: controller));
       await tester.pumpAndSettle();
-      await tester.tap(find.text('Iniciar motor'));
-      await tester.pumpAndSettle();
+      expect(bridge.starts, 1);
       bridge.connected();
       await tester.pumpAndSettle();
       await tester.tap(find.byTooltip('Abrir navegación'));
@@ -110,7 +109,7 @@ void main() {
       await tester.tap(find.byTooltip('Biblioteca'));
       await tester.pumpAndSettle();
       expect(find.text('Playlist asignada'), findsOneWidget);
-      await tester.tap(find.byTooltip('Reproducir canción 6'));
+      await tester.tap(find.byTooltip('Reproducir Canción 6'));
       await tester.pump();
       expect(bridge.playbackRequests.last['action'], 'play');
       expect(bridge.playbackRequests.last['song_id'], '6');

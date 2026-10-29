@@ -1,10 +1,18 @@
 import 'package:flutter/widgets.dart';
+import '../../models/engine_status.dart';
 
 class TrackViewData {
-  const TrackViewData(this.title, this.artist, this.seconds, this.color);
+  const TrackViewData(
+    this.title,
+    this.artist,
+    this.seconds,
+    this.color, {
+    this.coverPath,
+  });
   final String title, artist;
   final int seconds;
   final Color color;
+  final String? coverPath;
 }
 
 class ZoneViewData {
@@ -34,6 +42,9 @@ class ZoneViewData {
   int? positionMs;
   int? durationMs;
   String? observedState, failure;
+  String? coverPath, songId, backgroundPath;
+  String? playlistId;
+  Map<String, String> songPreferences = const {};
   String get song => track?.title ?? 'Sin canción reportada';
 }
 
@@ -55,6 +66,13 @@ class OutputViewData {
 
 /// Shared presentation boundary. Real state never inherits the preview's data.
 abstract class AudioViewState extends ChangeNotifier {
+  List<PlaylistInfo> get playlists => const [];
+  bool get canPlayPlaylist => false;
+  void playPlaylist(String playlistId, {String? songId}) => _unsupported();
+  void playAssignedPlaylist() => _unsupported();
+  bool get canSetSongPreference => false;
+  void setSongPreference(String zoneId, String songId, String preference) =>
+      _unsupported();
   List<ZoneViewData> get zones;
   List<OutputViewData> get outputs;
   int get selectedIndex;
@@ -70,6 +88,13 @@ abstract class AudioViewState extends ChangeNotifier {
   String get error => '';
   String get server => '';
   String get version => '';
+  int get configurationRevision => 0;
+  DateTime? get lastHeartbeat => null;
+  DateTime? get lastSnapshot => null;
+  int? get heapBytes => null;
+  int? get uptimeSeconds => null;
+  bool get serverSynced => connected;
+  bool get heartbeatHealthy => connected;
   bool get needsConfiguration => false;
   bool get busy => false;
   VoidCallback? get refreshAction => null;

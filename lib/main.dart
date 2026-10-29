@@ -24,7 +24,7 @@ class MainApp extends StatelessWidget {
   Widget build(BuildContext context) => ValueListenableBuilder<ThemeMode>(
     valueListenable: UiAppearance.mode,
     builder: (context, mode, _) => MaterialApp(
-      title: 'Utrack · Engine',
+      title: 'UTRACK SOUND',
       debugShowCheckedModeBanner: false,
       theme: UiTheme.light,
       darkTheme: UiTheme.dark,

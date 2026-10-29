@@ -70,6 +70,11 @@ void main() {
     bridge.connected();
     bridge.stream.add({
       'type': 'status',
+      'performance': {
+        'cpu_percent': 4.2,
+        'heap_bytes': 20971520,
+        'uptime_seconds': 123,
+      },
       'report': {
         'applied_config_revision': 4,
         'zones': [
@@ -82,18 +87,33 @@ void main() {
           'name': 'Terraza',
           'playlist': 'Ambient',
           'songs': ['5', '6'],
+          'cover_path': 'C:/cache/playlist.img',
           'shuffle': true,
           'repeat_mode': 'playlist',
           'continuous_playback': true,
           'song_metadata': [
-            {'song_id': '5', 'title': 'Black Tide', 'artist': 'Artista'},
+            {
+              'song_id': '5',
+              'title': 'Black Tide',
+              'artist': 'Artista',
+              'cover_path': 'C:/cache/individual.img',
+            },
             {'song_id': '6', 'title': 'Otra canción', 'artist': null},
           ],
         },
       ],
     });
     expect(view.track.title, 'Black Tide');
+    expect(view.cpu, 4.2);
+    expect(view.heapBytes, 20971520);
+    expect(view.uptimeSeconds, 123);
+    expect(view.configurationRevision, 4);
+    expect(view.serverSynced, isTrue);
+    expect(view.lastHeartbeat, isNotNull);
     expect(view.track.artist, 'Artista');
+    expect(view.track.coverPath, 'C:/cache/individual.img');
+    expect(view.selected.coverPath, 'C:/cache/playlist.img');
+    expect(view.selected.songMetadata['6']!.coverPath, 'C:/cache/playlist.img');
     expect(view.selected.songMetadata['6']!.artist, 'Artista no reportado');
     expect(view.selected.shuffle, isTrue);
     expect(view.selected.repeatMode, 'playlist');

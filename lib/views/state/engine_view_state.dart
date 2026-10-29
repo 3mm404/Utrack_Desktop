@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/widgets.dart';
 import '../../controllers/engine_controller.dart';
+import '../../models/engine_status.dart';
 import '../design/ui_tokens.dart';
 import 'audio_view_state.dart';
 
@@ -82,6 +83,11 @@ class EngineViewState extends AudioViewState {
       ..observedState = zone.label
       ..failure = zone.error
       ..songs = zone.songs
+      ..coverPath = zone.coverPath
+      ..backgroundPath = zone.backgroundPath
+      ..playlistId = zone.playlistId
+      ..songPreferences = zone.songPreferences
+      ..songId = zone.songId
       ..shuffle = zone.shuffle
       ..repeat = zone.repeatMode == 'track' || zone.repeatMode == 'playlist'
       ..repeatMode = zone.repeatMode
@@ -95,6 +101,7 @@ class EngineViewState extends AudioViewState {
             entry.value.artist ?? 'Artista no reportado',
             0,
             UiColors.muted,
+            coverPath: entry.value.coverPath ?? zone.coverPath,
           ),
       }
       ..track = zone.songId == null
@@ -108,6 +115,8 @@ class EngineViewState extends AudioViewState {
                   ? 0
                   : (zone.durationMs! / 1000).ceil(),
               UiColors.muted,
+              coverPath:
+                  zone.songMetadata[zone.songId]?.coverPath ?? zone.coverPath,
             );
   }
 
@@ -287,6 +296,51 @@ class EngineViewState extends AudioViewState {
   @override
   void playSong(String songId) => _playback('play', songId: songId);
   @override
+  void playAssignedPlaylist() => _playback('play');
+  @override
+  List<PlaylistInfo> get playlists => controller.playlists;
+  @override
+  bool get canPlayPlaylist => canPlayback('play_playlist');
+  @override
+  bool get canSetSongPreference =>
+      controller.serverControl && canPlayback('song_preference');
+  @override
+  void setSongPreference(String zoneId, String songId, String preference) {
+    if (!canSetSongPreference || !zones.any((zone) => zone.id == zoneId)) {
+      return;
+    }
+    unawaited(
+      controller.playback(
+        zoneId,
+        'song_preference',
+        songId: songId,
+        preference: preference,
+      ),
+    );
+  }
+
+  @override
+  void playPlaylist(String playlistId, {String? songId}) {
+    if (!canPlayPlaylist ||
+        !playlists.any(
+          (playlist) =>
+              playlist.id == playlistId &&
+              playlist.songs.isNotEmpty &&
+              (songId == null || playlist.songs.containsKey(songId)),
+        )) {
+      return;
+    }
+    unawaited(
+      controller.playback(
+        selected.id,
+        'play_playlist',
+        playlistId: playlistId,
+        songId: songId,
+      ),
+    );
+  }
+
+  @override
   VoidCallback? get refreshAction =>
       !controller.running && !controller.busy ? controller.refresh : null;
   @override
@@ -305,7 +359,21 @@ class EngineViewState extends AudioViewState {
   bool get canToggleEngine =>
       controller.canStart || (controller.running && !controller.busy);
   @override
-  double? get cpu => null;
+  double? get cpu => fresh ? controller.cpuPercent : null;
+  @override
+  int? get heapBytes => fresh ? controller.heapBytes : null;
+  @override
+  int? get uptimeSeconds => fresh ? controller.uptimeSeconds : null;
+  @override
+  int get configurationRevision => controller.revision;
+  @override
+  DateTime? get lastHeartbeat => controller.lastHeartbeat;
+  @override
+  DateTime? get lastSnapshot => controller.lastSnapshot;
+  @override
+  bool get serverSynced => fresh && controller.serverSynced;
+  @override
+  bool get heartbeatHealthy => fresh && controller.heartbeatHealthy;
   @override
   double? get latencyMs => null;
   @override

@@ -23,6 +23,15 @@ class EngineDashboard extends StatefulWidget {
 }
 
 class _EngineDashboardState extends State<EngineDashboard> {
+  bool _initializing = true;
+
+  Future<void> _initialize() async {
+    await widget.controller.initialize(autoStart: !widget.testMode);
+    if (mounted) {
+      setState(() => _initializing = false);
+    }
+  }
+
   int _page = 0;
   EngineViewState? _engineState;
   final _configurationKey = GlobalKey();
@@ -31,7 +40,7 @@ class _EngineDashboardState extends State<EngineDashboard> {
   void initState() {
     super.initState();
     if (!widget.testMode) _engineState = EngineViewState(widget.controller);
-    unawaited(widget.controller.initialize());
+    unawaited(_initialize());
     _lifecycle = AppLifecycleListener(
       onExitRequested: () async {
         try {
@@ -57,6 +66,11 @@ class _EngineDashboardState extends State<EngineDashboard> {
     listenable: widget.controller,
     builder: (context, _) {
       final c = widget.controller;
+      if (_initializing) {
+        return const Scaffold(
+          body: Center(child: Text('Preparando tu música…')),
+        );
+      }
       if (!widget.legacyLayout) {
         return UtrackShell(
           testMode: widget.testMode,

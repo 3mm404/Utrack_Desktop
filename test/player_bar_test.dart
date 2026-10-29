@@ -6,7 +6,7 @@ import 'package:utrack_v1/views/widgets/player_bar.dart';
 import 'package:utrack_v1/views/widgets/ui_controls.dart';
 
 void main() {
-  for (final width in [390.0, 1280.0]) {
+  for (final width in [320.0, 360.0, 390.0, 1280.0]) {
     testWidgets(
       'Reproductor simulado: transporte, progreso y silencio a $width px',
       (tester) async {
@@ -27,6 +27,12 @@ void main() {
           ),
         );
         await tester.pumpAndSettle();
+        if (width < 600) {
+          expect(
+            tester.getSize(find.byType(PlayerBar)).height,
+            lessThanOrEqualTo(210),
+          );
+        }
         await tester.tap(find.byTooltip('Reproducir vista previa'));
         await tester.pump();
         expect(find.byTooltip('Pausar vista previa'), findsOneWidget);

@@ -26,6 +26,8 @@ class EngineController extends ChangeNotifier {
   EngineSettings settings = const EngineSettings();
   List<String> drivers = [];
   List<ZoneStatus> zones = [];
+  List<PlaylistInfo> playlists = [];
+  bool serverControl = false;
   final List<ActivityEntry> activity = [];
   String version = '—', dataDirectory = '', error = '', driverWarning = '';
   String configurationError = '';
@@ -37,6 +39,10 @@ class EngineController extends ChangeNotifier {
   bool _sync = false, _heartbeat = false;
   DateTime? lastSnapshot, lastHeartbeat;
   int revision = 0;
+  double? cpuPercent;
+  int? heapBytes, uptimeSeconds;
+  bool get serverSynced => _sync;
+  bool get heartbeatHealthy => _heartbeat;
   Set<String> capabilities = {};
   final Map<String, Completer<Map<String, dynamic>>> _commands = {};
   int _requestSequence = 0;
@@ -50,6 +56,8 @@ class EngineController extends ChangeNotifier {
     String zoneId,
     String action, {
     String? songId,
+    String? playlistId,
+    String? preference,
     int? volume,
     int? positionMs,
     bool? shuffle,
@@ -66,6 +74,8 @@ class EngineController extends ChangeNotifier {
         operation: operation,
         zoneId: zoneId,
         songId: songId,
+        playlistId: playlistId,
+        preference: preference,
         volume: volume,
         positionMs: positionMs,
         shuffle: shuffle,
@@ -162,7 +172,12 @@ class EngineController extends ChangeNotifier {
     return 'Conectando / reintentando';
   }
 
-  Future<void> initialize() => refresh();
+  Future<void> initialize({bool autoStart = false}) async {
+    await refresh();
+    if (autoStart && !_disposed && error.isEmpty && canStart) {
+      await start();
+    }
+  }
 
   Future<void> _inspect() async {
     final info = await _bridge.inspect();
@@ -250,6 +265,10 @@ class EngineController extends ChangeNotifier {
     busy = true;
     error = '';
     zones = [];
+    playlists = [];
+    cpuPercent = null;
+    heapBytes = null;
+    uptimeSeconds = null;
     configurationError = '';
     _sync = false;
     _heartbeat = false;
@@ -326,6 +345,15 @@ class EngineController extends ChangeNotifier {
           _showConnectionFailure(message);
         }
       case 'status':
+        serverControl = event['server_control'] == true;
+        final performance = event['performance'] as Map<String, dynamic>?;
+        cpuPercent = (performance?['cpu_percent'] as num?)?.toDouble();
+        heapBytes = (performance?['heap_bytes'] as num?)?.toInt();
+        uptimeSeconds = (performance?['uptime_seconds'] as num?)?.toInt();
+        playlists = (event['playlists'] as List? ?? [])
+            .whereType<Map<String, dynamic>>()
+            .map(PlaylistInfo.fromJson)
+            .toList();
         final report = event['report'] as Map<String, dynamic>;
         final names = <String, Map<String, dynamic>>{};
         for (final value in event['zones'] as List? ?? []) {

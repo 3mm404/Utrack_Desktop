@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
 import '../design/ui_palette.dart';
 import 'ui_controls.dart';
+import 'cover_artwork.dart';
+
 import '../state/zone_preview_state.dart';
 
 /// Displays observed playback; enables transport only when supported.
@@ -44,9 +46,13 @@ class _PlayerBarState extends State<PlayerBar> {
 
   void _skip(int direction) => _state.skip(direction);
 
-  Widget _metadata() => Row(
+  Widget _metadata({bool compact = false}) => Row(
     children: [
-      _Cover(color: _track.color),
+      CoverArtwork(
+        path: _track.coverPath,
+        label: _track.title,
+        size: compact ? 44 : 64,
+      ),
       const SizedBox(width: UiSpace.lg),
       Expanded(
         child: Column(
@@ -169,11 +175,10 @@ class _PlayerBarState extends State<PlayerBar> {
       ),
       Expanded(
         child: Slider(
-          value: _volume,
+          value: _volume.clamp(0, 100),
           max: 100,
           label: '${_volume.round()}%',
-          semanticFormatterCallback: (value) =>
-              'Volumen del reproductor: ${value.round()}%',
+          semanticFormatterCallback: (value) => 'Volumen: ${value.round()}%',
           onChanged: _state.canSetVolume
               ? (value) => _state.setVolume(_state.selectedIndex, value)
               : null,
@@ -247,7 +252,7 @@ class _PlayerBarState extends State<PlayerBar> {
         border: Border(top: UiDecor.of(context).border),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(UiSpace.lg),
+        padding: EdgeInsets.all(12),
         child: LayoutBuilder(
           builder: (context, constraints) {
             final wide = constraints.maxWidth >= 1000;
@@ -274,62 +279,51 @@ class _PlayerBarState extends State<PlayerBar> {
                       ],
                     )
                   else ...[
-                    _metadata(),
+                    _metadata(compact: true),
                     const SizedBox(height: UiSpace.sm),
-                    _transport(),
+                    SingleChildScrollView(
+                      scrollDirection: Axis.horizontal,
+                      child: _transport(),
+                    ),
                   ],
-                  SizedBox(width: 300, child: _volumeControl()),
+                  if (constraints.maxWidth >= 600)
+                    SizedBox(width: 300, child: _volumeControl()),
                 ],
-                _progress(),
-                if (!_state.isSimulated)
+                if (constraints.maxWidth < 600)
+                  Row(
+                    children: [
+                      Expanded(child: _progress()),
+                      const SizedBox(width: 8),
+                      UiIconControl(
+                        icon: _volume == 0 ? Icons.volume_off : Icons.volume_up,
+                        label: _volume == 0
+                            ? 'Restaurar volumen del reproductor'
+                            : 'Silenciar reproductor',
+                        onPressed: _state.canControlZones
+                            ? _state.toggleMute
+                            : null,
+                      ),
+                      SizedBox(
+                        width: 32,
+                        child: Text(
+                          '${_volume.round()}%',
+                          style: UiText.of(context).caption,
+                        ),
+                      ),
+                    ],
+                  )
+                else
+                  _progress(),
+                if (!_state.isSimulated &&
+                    (_state.playbackPending || _state.volumePending))
                   Text(
-                    _state.playbackPending || _state.volumePending
-                        ? 'Esperando confirmación del motor…'
-                        : 'Reproducción y volumen por zona desde Desktop · Asignaciones desde el servidor.',
+                    'Esperando confirmación del equipo…',
                     style: UiText.of(context).caption,
                     textAlign: TextAlign.center,
                   ),
               ],
             );
           },
-        ),
-      ),
-    ),
-  );
-}
-
-/// Code-native album artwork, independent of external image assets.
-class _Cover extends StatelessWidget {
-  const _Cover({required this.color});
-  final Color color;
-  @override
-  Widget build(BuildContext context) => Semantics(
-    label: 'Carátula ilustrada de muestra',
-    image: true,
-    child: Container(
-      width: 64,
-      height: 64,
-      decoration: BoxDecoration(
-        color: UiPalette.of(context).input,
-        borderRadius: UiRadii.control,
-        border: Border.all(color: color),
-      ),
-      child: Center(
-        child: Container(
-          width: 48,
-          height: 48,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: UiPalette.of(context).elevated,
-            border: Border.all(color: color.withValues(alpha: .5), width: 3),
-          ),
-          child: Center(
-            child: Container(
-              width: 12,
-              height: 12,
-              decoration: BoxDecoration(color: color, shape: BoxShape.circle),
-            ),
-          ),
         ),
       ),
     ),

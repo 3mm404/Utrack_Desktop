@@ -9,7 +9,17 @@ enum EngineOperation {
   previous('previous', 'Canción anterior'),
   volume('volume', 'Volumen por zona', requiresVolume: true),
   seek('seek', 'Posición de la canción'),
-  playbackModes('playback_modes', 'Modos de reproducción');
+  playbackModes('playback_modes', 'Modos de reproducción'),
+  playPlaylist(
+    'play_playlist',
+    'Reproducir playlist en zona',
+    acceptsSong: true,
+  ),
+  songPreference(
+    'song_preference',
+    'Preferencia de canción por zona',
+    acceptsSong: true,
+  );
 
   const EngineOperation(
     this.wireName,
