@@ -26,12 +26,26 @@ void main() {
       try {
         expect((await bridge.inspect())['configured'], isFalse);
         await bridge.configure(
-          const EngineSettings(server: 'https://127.0.0.1:1'),
+          const EngineSettings(server: 'https://127.0.0.1:1', audioCache: true),
           'test-only-credential',
         );
         final info = await bridge.inspect();
         expect(info['configured'], isTrue);
         expect(info['capabilities'], contains('pause'));
+        expect(info['capabilities'], contains('audio_cache_settings'));
+        expect((info['settings'] as Map)['audio_cache'], isTrue);
+        final cacheDirectory = Directory(
+          '${info['data_directory']}${Platform.pathSeparator}encrypted-audio',
+        );
+        await cacheDirectory.create();
+        await File(
+          '${cacheDirectory.path}${Platform.pathSeparator}test.uenc',
+        ).writeAsBytes([1, 2, 3]);
+        final stored = await bridge.inspect();
+        expect(stored['audio_cache_files'], 1);
+        expect(stored['audio_cache_bytes'], 3);
+        await bridge.clearAudioCache();
+        expect((await bridge.inspect())['audio_cache_files'], 0);
         expect(info.toString(), isNot(contains('test-only-credential')));
         expect(info.toString(), isNot(contains('credential_dpapi')));
         await bridge.configure(

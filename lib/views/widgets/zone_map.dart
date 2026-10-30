@@ -1,3 +1,4 @@
+import 'accessible_controls.dart';
 import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
 import '../design/ui_palette.dart';
@@ -153,7 +154,7 @@ class _ZoneMapState extends State<ZoneMap> {
                           child: Semantics(
                             label: 'Seleccionar ${_zones[i].name}',
                             selected: _selected == i,
-                            child: Tooltip(
+                            child: AccessibleTooltip(
                               message:
                                   '${_zones[i].name} · ${_zones[i].volume.round()}% · ${_state.isActive(i) ? 'Activa' : 'Inactiva'}',
                               child: MetalDial(
@@ -212,7 +213,7 @@ class _ZoneMapState extends State<ZoneMap> {
                     ),
                     overlayShape: SliderComponentShape.noOverlay,
                   ),
-                  child: Slider(
+                  child: AccessibleSlider(
                     value: zone.volume,
                     max: 100,
                     onChanged: _state.canSetVolume

@@ -7,6 +7,7 @@ class EngineSettings {
     this.sampleRate = 48000,
     this.bufferSize = 256,
     this.channels = 0,
+    this.audioCache = false,
   });
 
   final String server;
@@ -16,6 +17,7 @@ class EngineSettings {
   final int sampleRate;
   final int bufferSize;
   final int channels;
+  final bool audioCache;
 
   factory EngineSettings.fromJson(Map<String, dynamic> json) => EngineSettings(
     server: json['server'] as String? ?? '',
@@ -29,6 +31,7 @@ class EngineSettings {
         ? json['buffer_size'] as int
         : 256,
     channels: json['channels'] as int? ?? 0,
+    audioCache: json['audio_cache'] == true,
   );
 
   Map<String, dynamic> toJson() => {
@@ -39,6 +42,7 @@ class EngineSettings {
     'sample_rate': sampleRate,
     'buffer_size': bufferSize,
     'channels': channels,
+    if (audioCache) 'audio_cache': true,
   };
 
   String? validate() {

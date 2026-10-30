@@ -1,5 +1,9 @@
 import '../models/engine_settings.dart';
 
+abstract interface class AudioCacheEngineBridge {
+  Future<void> clearAudioCache();
+}
+
 abstract interface class PlaybackEngineBridge {
   Future<void> sendPlayback(Map<String, dynamic> request);
 }

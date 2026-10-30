@@ -1,3 +1,4 @@
+import 'accessible_controls.dart';
 import 'package:flutter/material.dart';
 import '../../models/engine_status.dart';
 import '../state/audio_view_state.dart';
@@ -5,6 +6,8 @@ import '../design/ui_palette.dart';
 import 'cover_artwork.dart';
 import 'playlist_catalog.dart';
 import 'song_preference_controls.dart';
+import 'playlist_download_control.dart';
+import 'audio_state_builder.dart';
 
 /// Browse independently of the selected zone's observed playback.
 class AssignedPlaylistPanel extends StatefulWidget {
@@ -18,6 +21,8 @@ class _AssignedPlaylistPanelState extends State<AssignedPlaylistPanel> {
   final _search = TextEditingController();
   String? _openedId;
   bool _onlyAssigned = false;
+  int _songPage = 0;
+  static const _pageSize = 30;
   AudioViewState get state => widget.state;
 
   @override
@@ -44,6 +49,7 @@ class _AssignedPlaylistPanelState extends State<AssignedPlaylistPanel> {
 
   void _open(PlaylistInfo playlist) => setState(() {
     _openedId = playlist.id;
+    _songPage = 0;
     _search.clear();
   });
 
@@ -102,7 +108,7 @@ class _AssignedPlaylistPanelState extends State<AssignedPlaylistPanel> {
 
   Widget _searchField(bool detail) => TextField(
     controller: _search,
-    onChanged: (_) => setState(() {}),
+    onChanged: (_) => setState(() => _songPage = 0),
     decoration: InputDecoration(
       hintText: detail
           ? 'Buscar en esta playlist'
@@ -110,7 +116,7 @@ class _AssignedPlaylistPanelState extends State<AssignedPlaylistPanel> {
       prefixIcon: const Icon(Icons.search_rounded),
       suffixIcon: _search.text.isEmpty
           ? null
-          : IconButton(
+          : AccessibleIconButton(
               tooltip: 'Limpiar búsqueda',
               onPressed: () => setState(_search.clear),
               icon: const Icon(Icons.close),
@@ -179,6 +185,12 @@ class _AssignedPlaylistPanelState extends State<AssignedPlaylistPanel> {
             playlists: playlists,
             assignedId: state.selected.playlistId,
             onOpen: _open,
+            canDownload: state.canDownloadPlaylists,
+            downloadPending: state.playlistDownloadPending,
+            onDownload: (playlist) => state.downloadPlaylist(
+              playlist.id,
+              cancel: playlist.download.active,
+            ),
           ),
       ],
     );
@@ -197,6 +209,9 @@ class _AssignedPlaylistPanelState extends State<AssignedPlaylistPanel> {
     final positions = {
       for (final entry in playlist.songs.keys.indexed) entry.$2: entry.$1 + 1,
     };
+    final pageCount = (songs.length / _pageSize).ceil().clamp(1, 1000000);
+    final page = _songPage.clamp(0, pageCount - 1);
+    final visibleSongs = songs.skip(page * _pageSize).take(_pageSize);
     final palette = UiPalette.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -265,6 +280,15 @@ class _AssignedPlaylistPanelState extends State<AssignedPlaylistPanel> {
                           const SizedBox(height: 20),
                           _playButton(playlist, assigned),
                         ],
+                        PlaylistDownloadControl(
+                          playlist: playlist,
+                          enabled: state.canDownloadPlaylists,
+                          pending: state.playlistDownloadPending(playlist.id),
+                          onAction: () => state.downloadPlaylist(
+                            playlist.id,
+                            cancel: playlist.download.active,
+                          ),
+                        ),
                       ],
                     ),
                   ),
@@ -321,8 +345,9 @@ class _AssignedPlaylistPanelState extends State<AssignedPlaylistPanel> {
                 ? 'Las canciones aparecerán aquí cuando se agreguen.'
                 : 'Busca por título o artista.',
           ),
-        for (final entry in songs)
+        for (final entry in visibleSongs)
           Material(
+            key: ValueKey('${playlist.id}-${entry.key}'),
             color: assigned && state.selected.songId == entry.key
                 ? palette.accent.withValues(alpha: .09)
                 : Colors.transparent,
@@ -387,7 +412,7 @@ class _AssignedPlaylistPanelState extends State<AssignedPlaylistPanel> {
                     zoneId: state.selected.id,
                     songId: entry.key,
                   ),
-                  IconButton(
+                  AccessibleIconButton(
                     tooltip: 'Reproducir ${entry.value.title}',
                     icon: const Icon(Icons.play_arrow_rounded),
                     onPressed:
@@ -406,6 +431,32 @@ class _AssignedPlaylistPanelState extends State<AssignedPlaylistPanel> {
                   ),
                 ],
               ),
+            ),
+          ),
+        if (pageCount > 1)
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                TextButton(
+                  onPressed: page > 0
+                      ? () => setState(() => _songPage = page - 1)
+                      : null,
+                  child: const Text('Anterior'),
+                ),
+                Flexible(
+                  child: Text(
+                    'Página ${page + 1} de $pageCount · ${songs.length} canciones',
+                  ),
+                ),
+                TextButton(
+                  onPressed: page + 1 < pageCount
+                      ? () => setState(() => _songPage = page + 1)
+                      : null,
+                  child: const Text('Siguiente'),
+                ),
+              ],
             ),
           ),
         if (!assigned && playlist.songs.isNotEmpty)
@@ -438,9 +489,28 @@ class _AssignedPlaylistPanelState extends State<AssignedPlaylistPanel> {
   );
 
   @override
-  Widget build(BuildContext context) => ListenableBuilder(
+  Widget build(BuildContext context) => AudioStateBuilder(
     listenable: state,
-    builder: (context, _) {
+    select: () => [
+      state.playlists,
+      state.selected.id,
+      state.selected.playlistId,
+      state.selected.songId,
+      state.selected.playing,
+      state.selected.songPreferences.toString(),
+      state.selected.source,
+      state.selected.coverPath,
+      state.configurationRevision,
+      state.fresh,
+      state.error,
+      state.playbackPending,
+      state.canPlayPlaylist,
+      state.canSetSongPreference,
+      state.canDownloadPlaylists,
+      for (final playlist in state.playlists)
+        state.playlistDownloadPending(playlist.id),
+    ],
+    builder: (context) {
       final opened = state.playlists
           .where((playlist) => playlist.id == _openedId)
           .firstOrNull;

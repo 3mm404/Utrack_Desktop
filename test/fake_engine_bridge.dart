@@ -2,7 +2,8 @@ import 'dart:async';
 import 'package:utrack_v1/models/engine_settings.dart';
 import 'package:utrack_v1/services/engine_bridge.dart';
 
-class FakeEngineBridge implements EngineBridge, PlaybackEngineBridge {
+class FakeEngineBridge
+    implements EngineBridge, PlaybackEngineBridge, AudioCacheEngineBridge {
   final stream = StreamController<Map<String, dynamic>>.broadcast(sync: true);
   EngineSettings settings = const EngineSettings(
     server: 'https://example.test',
@@ -12,6 +13,16 @@ class FakeEngineBridge implements EngineBridge, PlaybackEngineBridge {
   String? savedToken;
   Object? failure;
   bool playbackEnabled = false;
+  bool audioCacheSupported = false;
+  int audioCacheBytes = 0, audioCacheFiles = 0, cacheClears = 0;
+  @override
+  Future<void> clearAudioCache() async {
+    if (failure != null) throw failure!;
+    cacheClears++;
+    audioCacheBytes = 0;
+    audioCacheFiles = 0;
+  }
+
   final List<Map<String, dynamic>> playbackRequests = [];
   @override
   Future<void> sendPlayback(Map<String, dynamic> request) async {
@@ -35,8 +46,11 @@ class FakeEngineBridge implements EngineBridge, PlaybackEngineBridge {
   @override
   Future<Map<String, dynamic>> inspect() async => {
     'protocol': 1,
-    if (playbackEnabled)
-      'capabilities': [
+    'capabilities': [
+      if (audioCacheSupported) 'audio_cache_settings',
+      if (playbackEnabled) ...[
+        'download_playlist',
+        'cancel_playlist_download',
         'play',
         'pause',
         'resume',
@@ -48,6 +62,9 @@ class FakeEngineBridge implements EngineBridge, PlaybackEngineBridge {
         'play_playlist',
         'song_preference',
       ],
+    ],
+    'audio_cache_bytes': audioCacheBytes,
+    'audio_cache_files': audioCacheFiles,
     'version': '0.8.0',
     'configured': configured,
     'running': externalRunning,
@@ -83,6 +100,7 @@ class FakeEngineBridge implements EngineBridge, PlaybackEngineBridge {
   void connected({
     String state = 'playing',
     Map<String, dynamic>? performance,
+    List<Map<String, dynamic>> playlists = const [],
   }) {
     stream.add({'type': 'connection', 'channel': 'sync', 'connected': true});
     stream.add({
@@ -94,6 +112,7 @@ class FakeEngineBridge implements EngineBridge, PlaybackEngineBridge {
       'type': 'status',
       'server_control': true,
       'performance': ?performance,
+      'playlists': playlists,
       'report': {
         'applied_config_revision': 3,
         'zones': [

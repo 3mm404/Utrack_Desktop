@@ -1,3 +1,4 @@
+import '../widgets/accessible_controls.dart';
 import 'package:flutter/material.dart';
 import '../design/ui_appearance.dart';
 import '../design/ui_palette.dart';
@@ -106,9 +107,7 @@ class UtrackHeader extends StatelessWidget {
                   ),
               ],
               const Spacer(),
-              Tooltip(
-                message: status,
-                child: ConstrainedBox(
+              ConstrainedBox(
                   constraints: const BoxConstraints(maxWidth: 170),
                   child: StatusIndicator(
                     label: status,
@@ -117,12 +116,11 @@ class UtrackHeader extends StatelessWidget {
                         : UiStatus.inactive,
                     showLabel: constraints.maxWidth >= 620,
                   ),
-                ),
               ),
               const SizedBox(width: 12),
               const ThemeToggle(),
               const SizedBox(width: 4),
-              PopupMenuButton<int>(
+              AccessiblePopupMenuButton<int>(
                 tooltip: 'Abrir navegación',
                 icon: const Icon(Icons.more_horiz_rounded),
                 initialValue: selected,
@@ -131,7 +129,7 @@ class UtrackHeader extends StatelessWidget {
                   for (var index = 0; index < shellLabels.length; index++)
                     PopupMenuItem(
                       value: index,
-                      child: Tooltip(
+                      child: AccessibleTooltip(
                         message: shellLabels[index],
                         child: Row(
                           children: [

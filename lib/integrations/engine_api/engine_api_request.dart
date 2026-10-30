@@ -25,7 +25,11 @@ class EngineApiRequest {
   final String? repeatMode;
 
   String? validate() {
-    if (zoneId.isEmpty) return 'Selecciona una zona.';
+    if (operation.isPlaylistDownload) {
+      if (zoneId.isNotEmpty) return 'La descarga no modifica una zona.';
+    } else if (zoneId.isEmpty) {
+      return 'Selecciona una zona.';
+    }
     if (operation == EngineOperation.songPreference) {
       if (songId == null ||
           songId!.isEmpty ||
@@ -35,7 +39,8 @@ class EngineApiRequest {
     } else if (preference != null) {
       return 'Esta operación no admite preferencias.';
     }
-    if (operation == EngineOperation.playPlaylist) {
+    if (operation == EngineOperation.playPlaylist ||
+        operation.isPlaylistDownload) {
       if (playlistId == null || playlistId!.isEmpty) {
         return 'Selecciona una playlist.';
       }

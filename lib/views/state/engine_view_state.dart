@@ -300,6 +300,16 @@ class EngineViewState extends AudioViewState {
   @override
   List<PlaylistInfo> get playlists => controller.playlists;
   @override
+  bool get canDownloadPlaylists => controller.canDownloadPlaylists;
+  @override
+  bool playlistDownloadPending(String id) =>
+      controller.playlistRequests.contains(id);
+  @override
+  void downloadPlaylist(String id, {bool cancel = false}) {
+    unawaited(controller.downloadPlaylist(id, cancel: cancel));
+  }
+
+  @override
   bool get canPlayPlaylist => canPlayback('play_playlist');
   @override
   bool get canSetSongPreference =>

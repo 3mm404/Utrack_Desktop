@@ -1,3 +1,4 @@
+import 'accessible_controls.dart';
 import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
 import '../design/ui_palette.dart';
@@ -25,7 +26,7 @@ class UiIconControl extends StatelessWidget {
       shape: circular ? BoxShape.circle : BoxShape.rectangle,
       borderRadius: circular ? null : UiRadii.control,
     ),
-    child: IconButton(
+    child: AccessibleIconButton(
       tooltip: label,
       onPressed: onPressed,
       isSelected: selected,
@@ -122,7 +123,7 @@ class UiSlider extends StatelessWidget {
                 context,
               ).accent.withValues(alpha: 0.12),
             ),
-            child: Slider(
+            child: AccessibleSlider(
               value: displayed,
               min: min,
               max: max,

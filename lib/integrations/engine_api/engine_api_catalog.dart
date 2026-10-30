@@ -1,6 +1,8 @@
 /// Public operations of the existing local engine pipe. These are NOT HTTP URLs.
 /// Add an operation here only after its Go handler and capability exist.
 enum EngineOperation {
+  downloadPlaylist('download_playlist', 'Descargar playlist'),
+  cancelPlaylistDownload('cancel_playlist_download', 'Cancelar descarga'),
   play('play', 'Reproducir', acceptsSong: true),
   pause('pause', 'Pausar'),
   resume('resume', 'Reanudar'),
@@ -31,6 +33,8 @@ enum EngineOperation {
   final String label;
   final bool acceptsSong;
   final bool requiresVolume;
+  bool get isPlaylistDownload =>
+      this == downloadPlaylist || this == cancelPlaylistDownload;
 
   static EngineOperation? fromWire(String value) {
     for (final operation in values) {

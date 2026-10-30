@@ -9,6 +9,7 @@ import '../widgets/audio_output_panel.dart';
 import '../widgets/engine_status_panel.dart';
 import '../widgets/assigned_playlist_panel.dart';
 import '../widgets/app_surface.dart';
+import '../widgets/audio_state_builder.dart';
 
 import '../state/zone_preview_state.dart';
 import 'utrack_header.dart';
@@ -51,6 +52,56 @@ class _UtrackShellState extends State<UtrackShell> {
   }
 
   int _selected = 0;
+
+  List<Object?> _contentValues() => [
+    _zoneState.configurationRevision,
+    _zoneState.selectedIndex,
+    _zoneState.fresh,
+    _zoneState.engineRunning,
+    _zoneState.busy,
+    _zoneState.error,
+    _zoneState.playbackPending,
+    _zoneState.volumePending,
+    _zoneState.canSetVolume,
+    _zoneState.canSetSongPreference,
+    _zoneState.canPlayPlaylist,
+    _zoneState.canDownloadPlaylists,
+    if (_selected == 2) _zoneState.playlists,
+    if (_selected == 3) ...[
+      _zoneState.cpu,
+      _zoneState.heapBytes,
+      _zoneState.uptimeSeconds,
+    ],
+    for (final zone in _zoneState.zones) ...[
+      zone.id,
+      zone.name,
+      zone.source,
+      zone.volume,
+      zone.playing,
+      zone.observedState,
+      zone.failure,
+      zone.songId,
+      zone.song,
+      zone.coverPath,
+      zone.backgroundPath,
+      zone.playlistId,
+      zone.shuffle,
+      zone.repeatMode,
+      zone.continuousPlayback,
+      zone.channels,
+      zone.songPreferences.toString(),
+      Object.hashAll(
+        zone.songMetadata.entries.map(
+          (entry) => Object.hash(
+            entry.key,
+            entry.value.title,
+            entry.value.artist,
+            entry.value.coverPath,
+          ),
+        ),
+      ),
+    ],
+  ];
   void _select(int index) => setState(() => _selected = index);
   Widget _placeholder(String title, String detail, {double height = 200}) =>
       SectionCard(
@@ -121,55 +172,67 @@ class _UtrackShellState extends State<UtrackShell> {
   }
 
   @override
-  Widget build(BuildContext context) => ListenableBuilder(
-    listenable: _zoneState,
-    builder: (context, _) => LayoutBuilder(
-      builder: (context, constraints) {
-        return Scaffold(
-          body: SafeArea(
-            child: AppFrame(
-              child: AppSurface(
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: Column(
-                        children: [
-                          if (widget.testMode)
-                            Container(
-                              width: double.infinity,
-                              color: UiPalette.of(context).elevated,
-                              padding: const EdgeInsets.all(UiSpace.sm),
-                              child: Text(
-                                'MODO TEST · Datos simulados, sin audio real',
-                                style: UiText.of(context).caption,
-                                textAlign: TextAlign.center,
-                              ),
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, constraints) {
+      return Scaffold(
+        body: SafeArea(
+          child: AppFrame(
+            child: AppSurface(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Column(
+                      children: [
+                        if (widget.testMode)
+                          Container(
+                            width: double.infinity,
+                            color: UiPalette.of(context).elevated,
+                            padding: const EdgeInsets.all(UiSpace.sm),
+                            child: Text(
+                              'MODO TEST · Datos simulados, sin audio real',
+                              style: UiText.of(context).caption,
+                              textAlign: TextAlign.center,
                             ),
-                          UtrackHeader(
+                          ),
+                        AudioStateBuilder(
+                          listenable: _zoneState,
+                          select: () => [
+                            _zoneState.status,
+                            _zoneState.connected,
+                          ],
+                          builder: (context) => UtrackHeader(
                             selected: _selected,
                             onSelected: _select,
                             title: shellLabels[_selected],
                             status: _zoneState.status,
                             connected: _zoneState.connected,
                           ),
-                          if (_zoneState.error.isNotEmpty)
-                            Padding(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: UiSpace.lg,
-                              ),
-                              child: Semantics(
-                                liveRegion: true,
-                                child: Text(
-                                  _zoneState.error,
-                                  style: UiText.of(context).body.copyWith(
-                                    color: UiPalette.of(context).error,
+                        ),
+                        ListenableBuilder(
+                          listenable: _zoneState,
+                          builder: (context, _) => _zoneState.error.isEmpty
+                              ? const SizedBox.shrink()
+                              : Padding(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: UiSpace.lg,
+                                  ),
+                                  child: Semantics(
+                                    liveRegion: true,
+                                    child: Text(
+                                      _zoneState.error,
+                                      style: UiText.of(context).body.copyWith(
+                                        color: UiPalette.of(context).error,
+                                      ),
+                                    ),
                                   ),
                                 ),
-                              ),
-                            ),
-                          const Divider(height: 1),
-                          Expanded(
-                            child: LayoutBuilder(
+                        ),
+                        const Divider(height: 1),
+                        Expanded(
+                          child: AudioStateBuilder(
+                            listenable: _zoneState,
+                            select: _contentValues,
+                            builder: (context) => LayoutBuilder(
                               builder: (context, content) => SingleChildScrollView(
                                 padding: const EdgeInsets.all(UiSpace.lg),
                                 child: _selected == 0
@@ -189,17 +252,17 @@ class _UtrackShellState extends State<UtrackShell> {
                               ),
                             ),
                           ),
-                          PlayerBar(state: _zoneState),
-                        ],
-                      ),
+                        ),
+                        PlayerBar(state: _zoneState),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),
-        );
-      },
-    ),
+        ),
+      );
+    },
   );
 }

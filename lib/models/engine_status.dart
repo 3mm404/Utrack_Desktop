@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class ZoneStatus {
   const ZoneStatus({
     required this.id,
@@ -96,6 +98,15 @@ class SongMetadata {
   final String title;
   final String? artist;
   final String? coverPath;
+
+  @override
+  bool operator ==(Object other) =>
+      other is SongMetadata &&
+      title == other.title &&
+      artist == other.artist &&
+      coverPath == other.coverPath;
+  @override
+  int get hashCode => Object.hash(title, artist, coverPath);
 }
 
 class ActivityEntry {
@@ -110,15 +121,40 @@ class PlaylistInfo {
     required this.name,
     this.coverPath,
     this.songs = const {},
+    this.download = const PlaylistDownloadInfo(),
   });
   final String id, name;
   final String? coverPath;
   final Map<String, SongMetadata> songs;
+  final PlaylistDownloadInfo download;
+
+  @override
+  bool operator ==(Object other) =>
+      other is PlaylistInfo &&
+      id == other.id &&
+      name == other.name &&
+      coverPath == other.coverPath &&
+      download == other.download &&
+      listEquals(songs.keys.toList(), other.songs.keys.toList()) &&
+      mapEquals(songs, other.songs);
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    coverPath,
+    download,
+    Object.hashAll(
+      songs.entries.map((entry) => Object.hash(entry.key, entry.value)),
+    ),
+  );
 
   factory PlaylistInfo.fromJson(Map<String, dynamic> json) => PlaylistInfo(
     id: json['playlist_id'].toString(),
     name: json['name'] as String? ?? 'Playlist',
     coverPath: json['cover_path'] as String?,
+    download: PlaylistDownloadInfo.fromJson(
+      json['download'] as Map<String, dynamic>? ?? {},
+    ),
     songs: {
       for (final song in (json['songs'] as List? ?? []).whereType<Map>())
         song['song_id'].toString(): SongMetadata(
@@ -128,4 +164,46 @@ class PlaylistInfo {
         ),
     },
   );
+}
+
+class PlaylistDownloadInfo {
+  const PlaylistDownloadInfo({
+    this.state = 'not_downloaded',
+    this.completed = 0,
+    this.total = 0,
+    this.message = '',
+  });
+  final String state, message;
+  final int completed, total;
+
+  @override
+  bool operator ==(Object other) =>
+      other is PlaylistDownloadInfo &&
+      state == other.state &&
+      message == other.message &&
+      completed == other.completed &&
+      total == other.total;
+  @override
+  int get hashCode => Object.hash(state, message, completed, total);
+  bool get active => ['queued', 'downloading', 'verifying'].contains(state);
+  bool get ready => state == 'ready';
+  factory PlaylistDownloadInfo.fromJson(Map<String, dynamic> json) =>
+      PlaylistDownloadInfo(
+        state: json['state'] as String? ?? 'not_downloaded',
+        completed: json['completed'] as int? ?? 0,
+        total: json['total'] as int? ?? 0,
+        message: json['message'] as String? ?? '',
+      );
+  String get label => switch (state) {
+    'checking' => 'Comprobando archivos guardados',
+    'queued' => 'En cola',
+    'downloading' => 'Descargando $completed de $total canciones',
+    'verifying' => 'Verificando playlist completa',
+    'ready' => 'Descarga completa · $total canciones verificadas',
+    'needs_update' => 'Hay cambios · actualiza la descarga',
+    'incomplete' => 'Descarga incompleta · $completed de $total verificadas',
+    'cancelled' => 'Descarga cancelada',
+    'error' => 'No se pudo completar la descarga',
+    _ => 'Sin descargar',
+  };
 }

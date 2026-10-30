@@ -1,3 +1,4 @@
+import 'widgets/accessible_controls.dart';
 import 'dart:async';
 import 'dart:ui' show AppExitResponse;
 import 'package:flutter/material.dart';
@@ -64,7 +65,30 @@ class _EngineDashboardState extends State<EngineDashboard> {
   @override
   Widget build(BuildContext context) => ListenableBuilder(
     listenable: widget.controller,
-    builder: (context, _) {
+    child: _initializing || widget.legacyLayout
+        ? null
+        : UtrackShell(
+            testMode: widget.testMode,
+            state: _engineState,
+            status: widget.controller.statusLabel,
+            connected: widget.controller.connected,
+            settings: ListenableBuilder(
+              listenable: widget.controller,
+              builder: (context, _) => Column(
+                children: [
+                  KeyedSubtree(
+                    key: _configurationKey,
+                    child: ConfigurationView(controller: widget.controller),
+                  ),
+                  const SizedBox(height: 24),
+                  EngineExtensionsView(controller: widget.controller),
+                  ActivityView(controller: widget.controller),
+                ],
+              ),
+            ),
+          ),
+    builder: (context, child) {
+      if (child != null) return child;
       final c = widget.controller;
       if (_initializing) {
         return const Scaffold(
@@ -231,7 +255,7 @@ class _EngineDashboardState extends State<EngineDashboard> {
                           ),
                           const SizedBox(width: 8),
                           if (wide) Text(c.statusLabel),
-                          IconButton(
+                          AccessibleIconButton(
                             tooltip: 'Actualizar configuración y drivers',
                             onPressed: !c.busy && !c.running && !c.dirty
                                 ? c.refresh

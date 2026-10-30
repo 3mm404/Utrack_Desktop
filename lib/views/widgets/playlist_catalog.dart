@@ -3,6 +3,7 @@ import '../../models/engine_status.dart';
 import '../design/ui_palette.dart';
 import 'cover_artwork.dart';
 import 'app_surface.dart';
+import 'playlist_download_control.dart';
 
 /// A browsable album grid. Opening a playlist never changes playback.
 class PlaylistCatalog extends StatelessWidget {
@@ -11,10 +12,16 @@ class PlaylistCatalog extends StatelessWidget {
     required this.playlists,
     required this.onOpen,
     this.assignedId,
+    this.canDownload = false,
+    this.downloadPending,
+    this.onDownload,
   });
   final List<PlaylistInfo> playlists;
   final ValueChanged<PlaylistInfo> onOpen;
   final String? assignedId;
+  final bool canDownload;
+  final bool Function(String id)? downloadPending;
+  final ValueChanged<PlaylistInfo>? onDownload;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
@@ -84,6 +91,13 @@ class PlaylistCatalog extends StatelessWidget {
                                 ),
                               ),
                             ],
+                          ),
+                          PlaylistDownloadControl(
+                            playlist: playlist,
+                            enabled: canDownload,
+                            pending:
+                                downloadPending?.call(playlist.id) ?? false,
+                            onAction: () => onDownload?.call(playlist),
                           ),
                         ],
                       ),

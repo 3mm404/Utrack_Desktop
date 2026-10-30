@@ -41,6 +41,8 @@ class ZoneArtwork extends StatelessWidget {
         ? null
         : localCoverImage(path!);
     return Semantics(
+      container: true,
+      excludeSemantics: true,
       image: true,
       label: 'Fondo de $label',
       child: SizedBox(

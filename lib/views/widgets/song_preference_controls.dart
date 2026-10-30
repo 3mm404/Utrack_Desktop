@@ -1,3 +1,4 @@
+import 'accessible_controls.dart';
 import 'package:flutter/material.dart';
 import '../state/audio_view_state.dart';
 import '../design/ui_palette.dart';
@@ -20,7 +21,7 @@ class SongPreferenceControls extends StatelessWidget {
     final current = zone?.songPreferences[songId];
     final palette = UiPalette.of(context);
     if (compact && MediaQuery.sizeOf(context).width < 600) {
-      return PopupMenuButton<String>(
+      return AccessiblePopupMenuButton<String>(
         tooltip: 'Preferencias de esta canción',
         enabled: state.canSetSongPreference,
         icon: Icon(
@@ -59,7 +60,7 @@ class SongPreferenceControls extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        IconButton(
+        AccessibleIconButton(
           tooltip: current == 'like'
               ? 'Quitar Me gusta en esta zona'
               : 'Me gusta: +20 % en aleatorio continuo',
@@ -82,7 +83,7 @@ class SongPreferenceControls extends StatelessWidget {
                 )
               : null,
         ),
-        IconButton(
+        AccessibleIconButton(
           tooltip: current == 'dislike'
               ? 'Volver a permitir esta canción'
               : 'No me gusta: excluir en esta zona',

@@ -67,6 +67,9 @@ class OutputViewData {
 /// Shared presentation boundary. Real state never inherits the preview's data.
 abstract class AudioViewState extends ChangeNotifier {
   List<PlaylistInfo> get playlists => const [];
+  bool get canDownloadPlaylists => false;
+  bool playlistDownloadPending(String id) => false;
+  void downloadPlaylist(String id, {bool cancel = false}) => _unsupported();
   bool get canPlayPlaylist => false;
   void playPlaylist(String playlistId, {String? songId}) => _unsupported();
   void playAssignedPlaylist() => _unsupported();

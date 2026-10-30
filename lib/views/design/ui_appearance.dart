@@ -1,3 +1,4 @@
+import '../widgets/accessible_controls.dart';
 import 'package:flutter/material.dart';
 import 'appearance_storage.dart';
 import 'appearance_store.dart';
@@ -34,7 +35,7 @@ class ThemeToggle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final light = Theme.of(context).brightness == Brightness.light;
-    return IconButton(
+    return AccessibleIconButton(
       tooltip: light ? 'Cambiar a tema oscuro' : 'Cambiar a tema claro',
       onPressed: () async {
         try {

@@ -1,3 +1,4 @@
+import 'accessible_controls.dart';
 import 'package:flutter/material.dart';
 import '../design/ui_tokens.dart';
 import '../design/ui_palette.dart';
@@ -25,7 +26,7 @@ class StatusIndicator extends StatelessWidget {
     };
     return Semantics(
       label: label,
-      child: Tooltip(
+      child: AccessibleTooltip(
         message: label,
         child: ExcludeSemantics(
           child: Row(

@@ -24,6 +24,15 @@ class EngineController extends ChangeNotifier {
   late final StreamSubscription<Map<String, dynamic>> _subscription;
   late final Timer _timer;
   EngineSettings settings = const EngineSettings();
+  int audioCacheBytes = 0, audioCacheFiles = 0;
+  String audioCacheError = '';
+  bool get supportsAudioCache => capabilities.contains('audio_cache_settings');
+  bool get canClearAudioCache =>
+      supportsAudioCache &&
+      configured &&
+      canConfigure &&
+      !dirty &&
+      _bridge is AudioCacheEngineBridge;
   List<String> drivers = [];
   List<ZoneStatus> zones = [];
   List<PlaylistInfo> playlists = [];
@@ -46,7 +55,36 @@ class EngineController extends ChangeNotifier {
   Set<String> capabilities = {};
   final Map<String, Completer<Map<String, dynamic>>> _commands = {};
   int _requestSequence = 0;
-  bool get playbackPending => _commands.isNotEmpty;
+  final Set<String> _downloadCommands = {};
+  final Set<String> playlistRequests = {};
+  bool get playbackPending =>
+      _commands.keys.any((id) => !_downloadCommands.contains(id));
+  bool get canDownloadPlaylists =>
+      running &&
+      fresh &&
+      supportsPlayback('download_playlist') &&
+      configurationError.isEmpty;
+
+  Future<bool> downloadPlaylist(String id, {bool cancel = false}) async {
+    if (playlistRequests.contains(id)) return false;
+    playlistRequests.add(id);
+    notifyListeners();
+    try {
+      return await executeEngineRequest(
+        EngineApiRequest(
+          operation: cancel
+              ? EngineOperation.cancelPlaylistDownload
+              : EngineOperation.downloadPlaylist,
+          zoneId: '',
+          playlistId: id,
+        ),
+      );
+    } finally {
+      playlistRequests.remove(id);
+      notifyListeners();
+    }
+  }
+
   bool _stopPending = false;
   bool get stopPending => _stopPending;
   bool supportsPlayback(String action) =>
@@ -94,7 +132,8 @@ class EngineController extends ChangeNotifier {
     }
     if (!running ||
         !fresh ||
-        (playbackPending &&
+        (!request.operation.isPlaylistDownload &&
+            playbackPending &&
             (request.operation != EngineOperation.stop || stopPending)) ||
         !supportsPlayback(request.operation.wireName) ||
         configurationError.isNotEmpty) {
@@ -104,6 +143,7 @@ class EngineController extends ChangeNotifier {
         '${DateTime.now().microsecondsSinceEpoch}-${++_requestSequence}';
     final result = Completer<Map<String, dynamic>>();
     _commands[requestId] = result;
+    if (request.operation.isPlaylistDownload) _downloadCommands.add(requestId);
     if (request.operation == EngineOperation.stop) _stopPending = true;
     error = '';
     notifyListeners();
@@ -137,6 +177,7 @@ class EngineController extends ChangeNotifier {
       return false;
     } finally {
       _commands.remove(requestId);
+      _downloadCommands.remove(requestId);
       if (request.operation == EngineOperation.stop) _stopPending = false;
       notifyListeners();
     }
@@ -189,6 +230,9 @@ class EngineController extends ChangeNotifier {
         .whereType<String>()
         .toSet();
     dataDirectory = info['data_directory'] as String? ?? '';
+    audioCacheBytes = info['audio_cache_bytes'] as int? ?? 0;
+    audioCacheFiles = info['audio_cache_files'] as int? ?? 0;
+    audioCacheError = info['audio_cache_error'] as String? ?? '';
     drivers = (info['drivers'] as List? ?? []).cast<String>();
     configured = info['configured'] == true;
     externalRunning = !running && info['running'] == true;
@@ -238,6 +282,10 @@ class EngineController extends ChangeNotifier {
       return false;
     }
     final validation = value.validate();
+    if (value.audioCache && !supportsAudioCache) {
+      _fail('Actualiza el motor para activar las descargas protegidas.');
+      return false;
+    }
     if (validation != null || (!configured && token.trim().isEmpty)) {
       _fail(validation ?? 'Ingresa el token del equipo generado en Laravel.');
       return false;
@@ -250,6 +298,25 @@ class EngineController extends ChangeNotifier {
       await _inspect();
       dirty = false;
       _log('Configuración guardada en el motor.');
+      return true;
+    } catch (e) {
+      _fail(e);
+      return false;
+    } finally {
+      busy = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> clearAudioCache() async {
+    if (!canClearAudioCache) return false;
+    busy = true;
+    error = '';
+    notifyListeners();
+    try {
+      await (_bridge as AudioCacheEngineBridge).clearAudioCache();
+      await _inspect();
+      _log('Descargas de audio eliminadas de este equipo.');
       return true;
     } catch (e) {
       _fail(e);
@@ -350,10 +417,11 @@ class EngineController extends ChangeNotifier {
         cpuPercent = (performance?['cpu_percent'] as num?)?.toDouble();
         heapBytes = (performance?['heap_bytes'] as num?)?.toInt();
         uptimeSeconds = (performance?['uptime_seconds'] as num?)?.toInt();
-        playlists = (event['playlists'] as List? ?? [])
+        final nextPlaylists = (event['playlists'] as List? ?? [])
             .whereType<Map<String, dynamic>>()
             .map(PlaylistInfo.fromJson)
             .toList();
+        if (!listEquals(playlists, nextPlaylists)) playlists = nextPlaylists;
         final report = event['report'] as Map<String, dynamic>;
         final names = <String, Map<String, dynamic>>{};
         for (final value in event['zones'] as List? ?? []) {

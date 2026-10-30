@@ -5,7 +5,8 @@ import 'dart:io';
 import '../models/engine_settings.dart';
 import 'engine_bridge.dart';
 
-class ProcessEngineBridge implements EngineBridge, PlaybackEngineBridge {
+class ProcessEngineBridge
+    implements EngineBridge, PlaybackEngineBridge, AudioCacheEngineBridge {
   ProcessEngineBridge({String? executable, this.environment})
     : executable =
           executable ??
@@ -74,6 +75,14 @@ class ProcessEngineBridge implements EngineBridge, PlaybackEngineBridge {
 
   @override
   Future<Map<String, dynamic>> inspect() => _request('desktop-info');
+
+  @override
+  Future<void> clearAudioCache() async {
+    final result = await _request('desktop-clear-audio-cache');
+    if (result['cleared'] != true) {
+      throw StateError('El motor no confirmó la eliminación de las descargas.');
+    }
+  }
 
   @override
   Future<void> configure(EngineSettings settings, String token) async {

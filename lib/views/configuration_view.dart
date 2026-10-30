@@ -1,3 +1,4 @@
+import 'widgets/accessible_controls.dart';
 import 'package:flutter/material.dart';
 import 'design/ui_palette.dart';
 import 'package:flutter/services.dart';
@@ -77,6 +78,7 @@ class _ConfigurationViewState extends State<ConfigurationView> {
         sampleRate: int.tryParse(_rate.text) ?? 48000,
         bufferSize: int.tryParse(_buffer.text) ?? 256,
         channels: int.tryParse(_channels.text) ?? 0,
+        audioCache: widget.controller.settings.audioCache,
       ),
       _token.text,
     );
@@ -176,7 +178,7 @@ class _ConfigurationViewState extends State<ConfigurationView> {
                                 ? 'Déjalo vacío para conservar la credencial guardada.'
                                 : 'Se guardará cifrado para este usuario de Windows.',
                             prefixIcon: const Icon(Icons.key),
-                            suffixIcon: IconButton(
+                            suffixIcon: AccessibleIconButton(
                               tooltip: 'Mostrar u ocultar token',
                               onPressed: () =>
                                   setState(() => _showToken = !_showToken),
