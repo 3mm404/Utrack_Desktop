@@ -1,6 +1,11 @@
+import 'widgets/accessible_controls.dart';
+
 import 'package:flutter/material.dart';
+
 import 'design/ui_palette.dart';
+
 import 'package:flutter/services.dart';
+
 import '../controllers/engine_controller.dart';
 import 'widgets/section_card.dart';
 
@@ -10,11 +15,10 @@ class ActivityView extends StatelessWidget {
   @override
   Widget build(BuildContext context) => SectionCard(
     title: 'Registro de actividad',
-    subtitle:
-        'Últimos 300 eventos de esta sesión. Los logs del motor también se guardan en Windows.',
+    subtitle: 'Últimos 300 eventos de esta sesión. Los logs del motor también se guardan en Windows.',
     trailing: Wrap(
       children: [
-        IconButton(
+        AccessibleIconButton(
           tooltip: 'Copiar registro',
           onPressed: () => Clipboard.setData(
             ClipboardData(
@@ -25,7 +29,7 @@ class ActivityView extends StatelessWidget {
           ),
           icon: const Icon(Icons.copy),
         ),
-        IconButton(
+        AccessibleIconButton(
           tooltip: 'Limpiar vista',
           onPressed: controller.clearActivity,
           icon: const Icon(Icons.clear_all),

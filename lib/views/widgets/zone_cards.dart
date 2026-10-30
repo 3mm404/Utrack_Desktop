@@ -1,4 +1,7 @@
+import 'accessible_controls.dart';
+
 import 'package:flutter/material.dart';
+
 import '../state/audio_view_state.dart';
 import '../design/ui_palette.dart';
 import 'zone_artwork.dart';
@@ -258,9 +261,8 @@ class ZoneCards extends StatelessWidget {
                     Expanded(
                       child: Text(
                         zone.name,
-                        style: UiText.of(
-                          context,
-                        ).heading.copyWith(fontSize: 28),
+                        style: UiText.of(context).heading
+                            .copyWith(fontSize: 28),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                       ),
@@ -299,7 +301,7 @@ class ZoneCards extends StatelessWidget {
                   runSpacing: 12,
                   crossAxisAlignment: WrapCrossAlignment.center,
                   children: [
-                    Tooltip(
+                    AccessibleTooltip(
                       message:
                           '${zone.playing ? 'Pausar' : 'Reproducir'} ${zone.name}',
                       child: FilledButton.icon(
@@ -340,7 +342,7 @@ class ZoneCards extends StatelessWidget {
                       color: palette.muted,
                     ),
                     Expanded(
-                      child: Slider(
+                      child: AccessibleSlider(
                         value: zone.volume.clamp(0, 100),
                         max: 100,
                         label: '${zone.volume.round()}%',

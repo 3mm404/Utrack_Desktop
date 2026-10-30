@@ -1,4 +1,7 @@
+import 'accessible_controls.dart';
+
 import 'package:flutter/material.dart';
+
 import '../design/ui_tokens.dart';
 import '../design/ui_palette.dart';
 import 'ui_controls.dart';
@@ -174,7 +177,7 @@ class _PlayerBarState extends State<PlayerBar> {
         onPressed: _state.canControlZones ? _state.toggleMute : null,
       ),
       Expanded(
-        child: Slider(
+        child: AccessibleSlider(
           value: _volume.clamp(0, 100),
           max: 100,
           label: '${_volume.round()}%',
@@ -203,7 +206,7 @@ class _PlayerBarState extends State<PlayerBar> {
         style: UiText.of(context).caption,
       ),
       Expanded(
-        child: Slider(
+        child: AccessibleSlider(
           value: _duration <= 0 ? 0 : _position.clamp(0, _duration).toDouble(),
           max: _duration > 0 ? _duration : 1,
           label: _time(_position),

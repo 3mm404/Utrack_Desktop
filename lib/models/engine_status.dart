@@ -1,3 +1,5 @@
+import 'package:flutter/foundation.dart';
+
 class ZoneStatus {
   const ZoneStatus({
     required this.id,
@@ -96,6 +98,15 @@ class SongMetadata {
   final String title;
   final String? artist;
   final String? coverPath;
+
+  @override
+  bool operator ==(Object other) =>
+      other is SongMetadata &&
+      title == other.title &&
+      artist == other.artist &&
+      coverPath == other.coverPath;
+  @override
+  int get hashCode => Object.hash(title, artist, coverPath);
 }
 
 class ActivityEntry {
@@ -114,6 +125,24 @@ class PlaylistInfo {
   final String id, name;
   final String? coverPath;
   final Map<String, SongMetadata> songs;
+
+  @override
+  bool operator ==(Object other) =>
+      other is PlaylistInfo &&
+      id == other.id &&
+      name == other.name &&
+      coverPath == other.coverPath &&
+      listEquals(songs.keys.toList(), other.songs.keys.toList()) &&
+      mapEquals(songs, other.songs);
+  @override
+  int get hashCode => Object.hash(
+    id,
+    name,
+    coverPath,
+    Object.hashAll(
+      songs.entries.map((entry) => Object.hash(entry.key, entry.value)),
+    ),
+  );
 
   factory PlaylistInfo.fromJson(Map<String, dynamic> json) => PlaylistInfo(
     id: json['playlist_id'].toString(),

@@ -1,6 +1,11 @@
+import 'widgets/accessible_controls.dart';
+
 import 'package:flutter/material.dart';
+
 import 'design/ui_palette.dart';
+
 import 'package:flutter/services.dart';
+
 import '../controllers/engine_controller.dart';
 import '../models/engine_settings.dart';
 import 'widgets/section_card.dart';
@@ -147,8 +152,7 @@ class _ConfigurationViewState extends State<ConfigurationView> {
                 children: [
                   SectionCard(
                     title: 'Conecta tu equipo',
-                    subtitle:
-                        'Usa el dominio de tu servidor y el token del equipo creado en Laravel.',
+                    subtitle: 'Usa el dominio de tu servidor y el token del equipo creado en Laravel.',
                     child: Column(
                       children: [
                         TextFormField(
@@ -176,7 +180,7 @@ class _ConfigurationViewState extends State<ConfigurationView> {
                                 ? 'Déjalo vacío para conservar la credencial guardada.'
                                 : 'Se guardará cifrado para este usuario de Windows.',
                             prefixIcon: const Icon(Icons.key),
-                            suffixIcon: IconButton(
+                            suffixIcon: AccessibleIconButton(
                               tooltip: 'Mostrar u ocultar token',
                               onPressed: () =>
                                   setState(() => _showToken = !_showToken),

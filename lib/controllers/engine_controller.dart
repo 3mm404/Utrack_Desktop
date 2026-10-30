@@ -1,4 +1,5 @@
 import 'dart:async';
+
 import 'package:flutter/foundation.dart';
 
 import '../models/engine_settings.dart';
@@ -350,10 +351,11 @@ class EngineController extends ChangeNotifier {
         cpuPercent = (performance?['cpu_percent'] as num?)?.toDouble();
         heapBytes = (performance?['heap_bytes'] as num?)?.toInt();
         uptimeSeconds = (performance?['uptime_seconds'] as num?)?.toInt();
-        playlists = (event['playlists'] as List? ?? [])
+        final nextPlaylists = (event['playlists'] as List? ?? [])
             .whereType<Map<String, dynamic>>()
             .map(PlaylistInfo.fromJson)
             .toList();
+        if (!listEquals(playlists, nextPlaylists)) playlists = nextPlaylists;
         final report = event['report'] as Map<String, dynamic>;
         final names = <String, Map<String, dynamic>>{};
         for (final value in event['zones'] as List? ?? []) {
@@ -391,8 +393,7 @@ class EngineController extends ChangeNotifier {
           'Laravel rechazó la credencial: el token no está vigente o el equipo está deshabilitado. '
           'Verifica el equipo en Laravel, pega su credencial vigente y pulsa Guardar token y conectar.';
     } else if (message.contains('session_superseded')) {
-      error =
-          'Otra instancia abrió una sesión para este equipo. Cierra la otra instancia antes de conectar.';
+      error = 'Otra instancia abrió una sesión para este equipo. Cierra la otra instancia antes de conectar.';
     }
   }
 

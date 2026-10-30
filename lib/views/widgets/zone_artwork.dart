@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+
 import '../design/ui_palette.dart';
 import 'cover_image_stub.dart' if (dart.library.io) 'cover_image_io.dart';
 
@@ -41,6 +42,8 @@ class ZoneArtwork extends StatelessWidget {
         ? null
         : localCoverImage(path!);
     return Semantics(
+      container: true,
+      excludeSemantics: true,
       image: true,
       label: 'Fondo de $label',
       child: SizedBox(

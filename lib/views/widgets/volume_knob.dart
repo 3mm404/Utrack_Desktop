@@ -1,6 +1,10 @@
+import 'accessible_controls.dart';
+
 import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+
 import '../design/ui_palette.dart';
 
 /// Drag vertically or use arrow keys to adjust a value from 0 to 100.
@@ -57,7 +61,7 @@ class VolumeKnob extends StatelessWidget {
               onVerticalDragStart: (_) => Focus.of(context).requestFocus(),
               onVerticalDragUpdate: (details) =>
                   change(volume - details.delta.dy / 2),
-              child: Tooltip(
+              child: AccessibleTooltip(
                 message: onChanged == null
                     ? 'Volumen reportado por el motor · control desde el servidor'
                     : 'Arrastra arriba/abajo o usa las flechas',
