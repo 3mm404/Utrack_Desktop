@@ -64,7 +64,7 @@ Se requieren herramientas nativas de Visual Studio para desarrollo desktop, adem
 
 `windows/CMakeLists.txt` copia obligatoriamente `windows/engine/engine.exe`; el binario está preparado localmente y está ignorado por Git. Esto también afecta un build Flutter con modo test: la bandera cambia la ejecución, no elimina esa regla CMake.
 
-`build-windows.ps1` compila el motor desde `../music-engine`, verifica su versión contra `windows/engine/VERSION` y compila Flutter en modo producción. Desktop 1.1.0+2 requiere Engine 0.8.8 (protocolo 1), con remuestreo de frecuencias MP3 en memoria. Para esta entrega se recompilaron el motor y Desktop; el ejecutable del motor se verifica también dentro del directorio Release.
+`build-windows.ps1` compila el motor desde `../music-engine`, compara su versión con [windows/engine/VERSION](../windows/engine/VERSION) y compila Flutter en modo producción. Usa [pubspec.yaml](../pubspec.yaml) para identificar la versión de Desktop. El script también verifica el ejecutable del motor en el directorio Release.
 
 Con un binario compatible ya preparado por el responsable del motor:
 
